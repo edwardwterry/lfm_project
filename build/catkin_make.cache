@@ -1,0 +1,2 @@
+lfm
+-DCATKIN_DEVEL_PREFIX=/home/et/Documents/lfm_ws/devel -DCMAKE_INSTALL_PREFIX=/home/et/Documents/lfm_ws/install -G Unix Makefiles
