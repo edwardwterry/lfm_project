@@ -117,7 +117,16 @@ endif()
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
   include("/home/et/Documents/lfm_ws/build/gtest/cmake_install.cmake")
+  include("/home/et/Documents/lfm_ws/build/apriltags2_ros/apriltags2/cmake_install.cmake")
+  include("/home/et/Documents/lfm_ws/build/image_common/image_common/cmake_install.cmake")
   include("/home/et/Documents/lfm_ws/build/lfm/cmake_install.cmake")
+  include("/home/et/Documents/lfm_ws/build/image_common/camera_calibration_parsers/cmake_install.cmake")
+  include("/home/et/Documents/lfm_ws/build/image_common/image_transport/cmake_install.cmake")
+  include("/home/et/Documents/lfm_ws/build/image_common/camera_info_manager/cmake_install.cmake")
+  include("/home/et/Documents/lfm_ws/build/image_common/polled_camera/cmake_install.cmake")
+  include("/home/et/Documents/lfm_ws/build/opencv_apps/cmake_install.cmake")
+  include("/home/et/Documents/lfm_ws/build/apriltags2_ros/apriltags2_ros/cmake_install.cmake")
+  include("/home/et/Documents/lfm_ws/build/usb_cam/cmake_install.cmake")
 
 endif()
 

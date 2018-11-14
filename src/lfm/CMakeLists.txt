@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
   sensor_msgs
   OpenCV REQUIRED
+  camera_info_manager
 )
 
 find_package(realsense2)

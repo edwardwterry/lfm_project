@@ -18,6 +18,9 @@ set(CMAKE_TARGET_DEFINITIONS_CXX
 # The include file search paths:
 set(CMAKE_CXX_TARGET_INCLUDE_PATH
   "/home/et/Documents/lfm_ws/src/lfm/include"
+  "/home/et/Documents/lfm_ws/src/image_common/image_transport/include"
+  "/home/et/Documents/lfm_ws/src/image_common/camera_info_manager/include"
+  "/home/et/Documents/lfm_ws/src/image_common/camera_calibration_parsers/include"
   "/opt/ros/kinetic/include"
   "/opt/ros/kinetic/share/xmlrpcpp/cmake/../../../include/xmlrpcpp"
   "/opt/ros/kinetic/include/opencv-3.3.1-dev"

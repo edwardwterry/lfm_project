@@ -1,0 +1,8 @@
+prefix=/home/et/Documents/lfm_ws/devel
+
+Name: image_transport
+Description: Description of image_transport
+Version: 1.11.13
+Cflags: -I/home/et/Documents/lfm_ws/src/image_common/image_transport/include
+Libs: -L/home/et/Documents/lfm_ws/devel/lib -limage_transport
+Requires: message_filters pluginlib rosconsole roscpp roslib sensor_msgs

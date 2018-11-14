@@ -3,10 +3,12 @@
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
+#include <sensor_msgs/distortion_models.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <librealsense2/rsutil.h>
 #include <std_msgs/Float32.h>
+// #include <camera_info_manager/camera_info_manager.h>
 
 
 #include "lfm.h"
@@ -50,24 +52,85 @@ static const std::string OPENCV_WINDOW = "Image window";
 
 class WorldCoords {
     public:
-        WorldCoords();
+        void run();
+        // WorldCoords();
         void remove_background(rs2::video_frame& other, const rs2::depth_frame& depth_frame, float depth_scale);//, float clipping_dist);
         float get_depth_scale(rs2::device dev);
         rs2_stream find_stream_to_align(const std::vector<rs2::stream_profile>& streams);
         bool profile_changed(const std::vector<rs2::stream_profile>& current, const std::vector<rs2::stream_profile>& prev);
+        // void segmentByColor(cv::Mat & image, cv::Scalar target_color);
+        sensor_msgs::CameraInfo generateCalibrationData();
+        ros::NodeHandle n;
+        rs2::pipeline pipe;
 };
 
-WorldCoords::WorldCoords(){
-    ros::NodeHandle n;
-    rs2::pipeline pipe;
+sensor_msgs::CameraInfo WorldCoords::generateCalibrationData()
+{
+  sensor_msgs::CameraInfo ci;
+
+  ci.width = 640u;
+  ci.height = 480u;
+
+  // set distortion coefficients
+  ci.distortion_model = sensor_msgs::distortion_models::PLUMB_BOB;
+  ci.D.resize(5);
+  ci.D[0] = 0.14570510511071208;
+  ci.D[1] = -0.3424532038552255;
+  ci.D[2] = -0.0012457073683988366;
+  ci.D[3] = -0.002490918767386115;
+  ci.D[4] = 0.0;
+
+  // set camera matrix
+  ci.K[0] = 634.3947866272065;
+  ci.K[1] = 0.0;
+  ci.K[2] = 321.55435855322696;
+  ci.K[3] = 0.0;
+  ci.K[4] = 635.9909775558393;
+  ci.K[5] = 236.97478263483032;
+  ci.K[6] = 0.0;
+  ci.K[7] = 0.0;
+  ci.K[8] = 1.0;
+
+  // set rectification matrix
+  ci.R[0] = 1.0;
+  ci.R[1] = 0.0;
+  ci.R[2] = 0.0;
+  ci.R[3] = 0.0;
+  ci.R[4] = 1.0;
+  ci.R[5] = 0.0;
+  ci.R[6] = 0.0;
+  ci.R[7] = 0.0;
+  ci.R[8] = 1.0;
+
+  // set projection matrix
+  ci.P[0] = ci.K[0];
+  ci.P[1] = ci.K[1];
+  ci.P[2] = ci.K[2];
+  ci.P[3] = 0.0;
+  ci.P[4] = ci.K[3];
+  ci.P[5] = ci.K[4];
+  ci.P[6] = ci.K[5];
+  ci.P[7] = 0.0;
+  ci.P[8] = ci.K[6];
+  ci.P[9] = ci.K[7];
+  ci.P[10] = ci.K[8];
+  ci.P[11] = 0.0;
+
+  return ci;
+}
+
+void WorldCoords::run(){
     rs2::pipeline_profile profile = pipe.start();
     float depth_scale = get_depth_scale(profile.get_device());
     rs2_stream align_to = find_stream_to_align(profile.get_streams());
     rs2::align align(align_to);
-    ros::Publisher depth_pub = n.advertise<std_msgs::Float32>("depth", 1000);
+    // ros::Publisher depth_pub = n.advertise<std_msgs::Float32>("depth", 1000);
     image_transport::ImageTransport it(n);
-    image_transport::Publisher image_pub = it.advertise("camera/image", 1);
-      while(1){
+    image_transport::Publisher image_pub = it.advertise("/camera/image_raw", 1);
+    ros::Publisher info_pub = n.advertise<sensor_msgs::CameraInfo>("/camera/camera_info", 1);
+    sensor_msgs::CameraInfo info_msg = generateCalibrationData();
+    int seq = 0;
+      while(ros::ok()){
         std::cout<<"running!"<<std::endl;
         rs2::frameset frameset = pipe.wait_for_frames();
         if (profile_changed(pipe.get_active_profile().get_streams(), profile.get_streams()))
@@ -94,14 +157,17 @@ WorldCoords::WorldCoords(){
         // Passing both frames to remove_background so it will "strip" the background
         // NOTE: in this example, we alter the buffer of the other frame, instead of copying it and altering the copy
         //       This behavior is not recommended in real application since the other frame could be used elsewhere
-        WorldCoords::remove_background(other_frame, aligned_depth_frame, depth_scale);//, depth_clipping_distance);
+        // WorldCoords::remove_background(other_frame, aligned_depth_frame, depth_scale);//, depth_clipping_distance);
         const int w = other_frame.as<rs2::video_frame>().get_width();
         const int h = other_frame.as<rs2::video_frame>().get_height();
-        cv::Mat image(cv::Size(w, h), CV_8UC3, (void*)other_frame.get_data());//, cv::Mat::AUTO_STEP);
+        cv::Mat image(cv::Size(w, h), CV_8UC3, (void*)other_frame.get_data(), cv::Mat::AUTO_STEP);
         sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), 
                                                        sensor_msgs::image_encodings::RGB8, 
                                                        image).toImageMsg();
+        msg->header.stamp = ros::Time::now();
         image_pub.publish(msg);
+        info_msg.header.stamp = msg->header.stamp;
+        info_pub.publish(info_msg);
     }
 }
 
@@ -201,10 +267,23 @@ bool WorldCoords::profile_changed(const std::vector<rs2::stream_profile>& curren
     return false;
 }
 
+// void WorldCoords::segmentByColor(cv::Mat & image, cv::Scalar target_color){
+//     cv::Scalar upper, lower;
+//     int range = 20;
+//     for (int i = 0; i<3; i++){
+//         // std::cout<<target_color[i]<<std::endl;
+//         upper[i] = std::min<int>(target_color[i]+range, 255);
+//         lower[i] = std::max<int>(target_color[i]-range, 0.0f);
+//         // std::cout<<upper[i]<<std::endl;
+//     }
+//     cv::inRange(image, lower, upper, image);
+// }
+
 int main (int argc, char **argv)
 {
 	ros::init(argc, argv, "lfm");
     WorldCoords wc;
+    wc.run();
 	return 0;
 }
 
