@@ -101,7 +101,9 @@ opencv2/highgui/highgui.hpp
 -
 librealsense2/rsutil.h
 -
-std_msgs/Float32.h
+std_msgs/Float32MultiArray.h
+-
+eigen3/Eigen/SVD
 -
 lfm.h
 /home/et/Documents/lfm_ws/src/lfm/src/lfm.h
@@ -2190,7 +2192,7 @@ stdexcept
 string
 -
 
-/opt/ros/kinetic/include/std_msgs/Float32.h
+/opt/ros/kinetic/include/std_msgs/Float32MultiArray.h
 string
 -
 vector
@@ -2204,6 +2206,8 @@ ros/serialization.h
 ros/builtin_message_traits.h
 -
 ros/message_operations.h
+-
+std_msgs/MultiArrayLayout.h
 -
 
 /opt/ros/kinetic/include/std_msgs/Header.h
@@ -2220,6 +2224,40 @@ ros/serialization.h
 ros/builtin_message_traits.h
 -
 ros/message_operations.h
+-
+
+/opt/ros/kinetic/include/std_msgs/MultiArrayDimension.h
+string
+-
+vector
+-
+map
+-
+ros/types.h
+-
+ros/serialization.h
+-
+ros/builtin_message_traits.h
+-
+ros/message_operations.h
+-
+
+/opt/ros/kinetic/include/std_msgs/MultiArrayLayout.h
+string
+-
+vector
+-
+map
+-
+ros/types.h
+-
+ros/serialization.h
+-
+ros/builtin_message_traits.h
+-
+ros/message_operations.h
+-
+std_msgs/MultiArrayDimension.h
 -
 
 /opt/ros/kinetic/include/xmlrpcpp/XmlRpcDecl.h

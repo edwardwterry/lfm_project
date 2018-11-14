@@ -7,7 +7,8 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <librealsense2/rsutil.h>
-#include <std_msgs/Float32.h>
+#include <std_msgs/Float32MultiArray.h>
+#include <eigen3/Eigen/SVD>
 // #include <camera_info_manager/camera_info_manager.h>
 
 
@@ -58,10 +59,14 @@ class WorldCoords {
         float get_depth_scale(rs2::device dev);
         rs2_stream find_stream_to_align(const std::vector<rs2::stream_profile>& streams);
         bool profile_changed(const std::vector<rs2::stream_profile>& current, const std::vector<rs2::stream_profile>& prev);
+        std::map<int, std::vector<float>> tagsInArmCoords();
         // void segmentByColor(cv::Mat & image, cv::Scalar target_color);
+        void processTagCentersClbk(const std_msgs::Float32MultiArray& msg);
         sensor_msgs::CameraInfo generateCalibrationData();
         ros::NodeHandle n;
         rs2::pipeline pipe;
+        ros::Subscriber tag_centers_sub = n.subscribe("/apriltags2_ros_continuous_node/tag_pixel_centers", 1000, &WorldCoords::processTagCentersClbk, this);
+        std::map<int, std::vector<float>> tag_centers_cam;
 };
 
 sensor_msgs::CameraInfo WorldCoords::generateCalibrationData()
@@ -119,6 +124,19 @@ sensor_msgs::CameraInfo WorldCoords::generateCalibrationData()
   return ci;
 }
 
+std::map<int, std::vector<float>> WorldCoords::tagsInArmCoords(){
+    std::map<int, std::vector<float>> coords;
+    coords.insert(std::make_pair(0, std::vector<float>(0.2285,	0.0655)));
+    coords.insert(std::make_pair(1, std::vector<float>(0.2285,	0)));
+    coords.insert(std::make_pair(2, std::vector<float>(0.2285,	-0.0655)));
+    coords.insert(std::make_pair(3, std::vector<float>(0.1555,	0.0655)));
+    coords.insert(std::make_pair(4, std::vector<float>(0.1555,	0)));
+    coords.insert(std::make_pair(5, std::vector<float>(0.1555,	-0.0655)));
+    coords.insert(std::make_pair(6, std::vector<float>(0.0815,	0.0655)));
+    coords.insert(std::make_pair(7, std::vector<float>(0.0815,	0)));
+    coords.insert(std::make_pair(8, std::vector<float>(0.0815,	-0.0655)));
+}
+
 void WorldCoords::run(){
     rs2::pipeline_profile profile = pipe.start();
     float depth_scale = get_depth_scale(profile.get_device());
@@ -168,6 +186,7 @@ void WorldCoords::run(){
         image_pub.publish(msg);
         info_msg.header.stamp = msg->header.stamp;
         info_pub.publish(info_msg);
+        ros::spinOnce();
     }
 }
 
@@ -266,6 +285,27 @@ bool WorldCoords::profile_changed(const std::vector<rs2::stream_profile>& curren
     }
     return false;
 }
+
+void WorldCoords::processTagCentersClbk(const std_msgs::Float32MultiArray& msg){
+    if (msg.layout.dim[0].size == 27){
+        for (int i = 0; i < msg.layout.dim[0].size; i = i+3){
+            auto it = tag_centers_cam.find(static_cast<int>(msg.data[i]));
+            if (it != tag_centers_cam.end()){
+                it->second[0] = msg.data[i+1];
+                it->second[1] = msg.data[i+2];
+            } else {
+                tag_centers_cam.insert(std::make_pair<int, std::vector<float>>(static_cast<int>(msg.data[i]), {msg.data[i+1], msg.data[i+2]}));
+            }
+        }
+    }
+    if (tag_centers_cam.find(0) != tag_centers_cam.end()){
+        std::cout<<tag_centers_cam.find(0)->second[0]<<" "<<tag_centers_cam.find(0)->second[1]<<std::endl;
+    }
+}
+
+// void WorldCoords::calcRt(){
+
+// }
 
 // void WorldCoords::segmentByColor(cv::Mat & image, cv::Scalar target_color){
 //     cv::Scalar upper, lower;

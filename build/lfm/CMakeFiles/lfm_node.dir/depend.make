@@ -208,8 +208,10 @@ lfm/CMakeFiles/lfm_node.dir/src/lfm.cpp.o: /opt/ros/kinetic/include/sensor_msgs/
 lfm/CMakeFiles/lfm_node.dir/src/lfm.cpp.o: /opt/ros/kinetic/include/sensor_msgs/RegionOfInterest.h
 lfm/CMakeFiles/lfm_node.dir/src/lfm.cpp.o: /opt/ros/kinetic/include/sensor_msgs/distortion_models.h
 lfm/CMakeFiles/lfm_node.dir/src/lfm.cpp.o: /opt/ros/kinetic/include/sensor_msgs/image_encodings.h
-lfm/CMakeFiles/lfm_node.dir/src/lfm.cpp.o: /opt/ros/kinetic/include/std_msgs/Float32.h
+lfm/CMakeFiles/lfm_node.dir/src/lfm.cpp.o: /opt/ros/kinetic/include/std_msgs/Float32MultiArray.h
 lfm/CMakeFiles/lfm_node.dir/src/lfm.cpp.o: /opt/ros/kinetic/include/std_msgs/Header.h
+lfm/CMakeFiles/lfm_node.dir/src/lfm.cpp.o: /opt/ros/kinetic/include/std_msgs/MultiArrayDimension.h
+lfm/CMakeFiles/lfm_node.dir/src/lfm.cpp.o: /opt/ros/kinetic/include/std_msgs/MultiArrayLayout.h
 lfm/CMakeFiles/lfm_node.dir/src/lfm.cpp.o: /opt/ros/kinetic/include/xmlrpcpp/XmlRpcDecl.h
 lfm/CMakeFiles/lfm_node.dir/src/lfm.cpp.o: /opt/ros/kinetic/include/xmlrpcpp/XmlRpcValue.h
 lfm/CMakeFiles/lfm_node.dir/src/lfm.cpp.o: /usr/local/include/librealsense2/h/rs_context.h

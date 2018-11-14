@@ -242,7 +242,10 @@ apriltags2_ros/apriltags2_ros/CMakeFiles/continuous_detector.dir/src/continuous_
 apriltags2_ros/apriltags2_ros/CMakeFiles/continuous_detector.dir/src/continuous_detector.cpp.o: /opt/ros/kinetic/include/sensor_msgs/Image.h
 apriltags2_ros/apriltags2_ros/CMakeFiles/continuous_detector.dir/src/continuous_detector.cpp.o: /opt/ros/kinetic/include/sensor_msgs/RegionOfInterest.h
 apriltags2_ros/apriltags2_ros/CMakeFiles/continuous_detector.dir/src/continuous_detector.cpp.o: /opt/ros/kinetic/include/sensor_msgs/image_encodings.h
+apriltags2_ros/apriltags2_ros/CMakeFiles/continuous_detector.dir/src/continuous_detector.cpp.o: /opt/ros/kinetic/include/std_msgs/Float32MultiArray.h
 apriltags2_ros/apriltags2_ros/CMakeFiles/continuous_detector.dir/src/continuous_detector.cpp.o: /opt/ros/kinetic/include/std_msgs/Header.h
+apriltags2_ros/apriltags2_ros/CMakeFiles/continuous_detector.dir/src/continuous_detector.cpp.o: /opt/ros/kinetic/include/std_msgs/MultiArrayDimension.h
+apriltags2_ros/apriltags2_ros/CMakeFiles/continuous_detector.dir/src/continuous_detector.cpp.o: /opt/ros/kinetic/include/std_msgs/MultiArrayLayout.h
 apriltags2_ros/apriltags2_ros/CMakeFiles/continuous_detector.dir/src/continuous_detector.cpp.o: /opt/ros/kinetic/include/tf/LinearMath/Matrix3x3.h
 apriltags2_ros/apriltags2_ros/CMakeFiles/continuous_detector.dir/src/continuous_detector.cpp.o: /opt/ros/kinetic/include/tf/LinearMath/MinMax.h
 apriltags2_ros/apriltags2_ros/CMakeFiles/continuous_detector.dir/src/continuous_detector.cpp.o: /opt/ros/kinetic/include/tf/LinearMath/QuadWord.h
