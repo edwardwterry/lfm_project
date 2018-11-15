@@ -101,9 +101,15 @@ opencv2/highgui/highgui.hpp
 -
 librealsense2/rsutil.h
 -
+librealsense2/rs_types.h
+-
 std_msgs/Float32MultiArray.h
 -
+eigen3/Eigen/Eigen
+-
 eigen3/Eigen/SVD
+-
+eigen3/Eigen/Dense
 -
 lfm.h
 /home/et/Documents/lfm_ws/src/lfm/src/lfm.h
@@ -2435,6 +2441,8 @@ hpp/rs_sensor.hpp
 /usr/local/include/librealsense2/hpp/rs_sensor.hpp
 hpp/rs_pipeline.hpp
 /usr/local/include/librealsense2/hpp/rs_pipeline.hpp
+
+/usr/local/include/librealsense2/rs_types.h
 
 /usr/local/include/librealsense2/rsutil.h
 h/rs_types.h

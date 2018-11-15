@@ -234,4 +234,5 @@ lfm/CMakeFiles/lfm_node.dir/src/lfm.cpp.o
  /usr/local/include/librealsense2/hpp/rs_types.hpp
  /usr/local/include/librealsense2/rs.h
  /usr/local/include/librealsense2/rs.hpp
+ /usr/local/include/librealsense2/rs_types.h
  /usr/local/include/librealsense2/rsutil.h

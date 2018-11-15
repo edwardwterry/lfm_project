@@ -7,8 +7,11 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <librealsense2/rsutil.h>
+#include <librealsense2/rs_types.h>
 #include <std_msgs/Float32MultiArray.h>
+#include <eigen3/Eigen/Eigen>
 #include <eigen3/Eigen/SVD>
+#include <eigen3/Eigen/Dense>
 // #include <camera_info_manager/camera_info_manager.h>
 
 
@@ -54,19 +57,30 @@ static const std::string OPENCV_WINDOW = "Image window";
 class WorldCoords {
     public:
         void run();
-        // WorldCoords();
         void remove_background(rs2::video_frame& other, const rs2::depth_frame& depth_frame, float depth_scale);//, float clipping_dist);
         float get_depth_scale(rs2::device dev);
         rs2_stream find_stream_to_align(const std::vector<rs2::stream_profile>& streams);
         bool profile_changed(const std::vector<rs2::stream_profile>& current, const std::vector<rs2::stream_profile>& prev);
-        std::map<int, std::vector<float>> tagsInArmCoords();
+        std::map<int, Eigen::Vector3f> generateTagsInArmCoords();
         // void segmentByColor(cv::Mat & image, cv::Scalar target_color);
         void processTagCentersClbk(const std_msgs::Float32MultiArray& msg);
+        rs2_intrinsics createRs2Intrinsics();
         sensor_msgs::CameraInfo generateCalibrationData();
+        bool calculateExtrinsics(const std::map<int, Eigen::Vector3f>& cam, 
+                                                const std::map<int, Eigen::Vector3f>& arm, 
+                                                Eigen::Matrix3f& R, 
+                                                Eigen::Vector3f& t);
+
         ros::NodeHandle n;
         rs2::pipeline pipe;
         ros::Subscriber tag_centers_sub = n.subscribe("/apriltags2_ros_continuous_node/tag_pixel_centers", 1000, &WorldCoords::processTagCentersClbk, this);
-        std::map<int, std::vector<float>> tag_centers_cam;
+        std::map<int, Eigen::Vector2f> tag_centers_pix_cam;
+        std::map<int, Eigen::Vector3f> tag_centers_3d_cam;
+        std::map<int, Eigen::Vector3f> tag_centers_3d_arm;
+        sensor_msgs::CameraInfo info_msg;
+        rs2_intrinsics rs2_intr;
+        Eigen::Matrix3f R;
+        Eigen::Vector3f t;
 };
 
 sensor_msgs::CameraInfo WorldCoords::generateCalibrationData()
@@ -124,17 +138,18 @@ sensor_msgs::CameraInfo WorldCoords::generateCalibrationData()
   return ci;
 }
 
-std::map<int, std::vector<float>> WorldCoords::tagsInArmCoords(){
-    std::map<int, std::vector<float>> coords;
-    coords.insert(std::make_pair(0, std::vector<float>(0.2285,	0.0655)));
-    coords.insert(std::make_pair(1, std::vector<float>(0.2285,	0)));
-    coords.insert(std::make_pair(2, std::vector<float>(0.2285,	-0.0655)));
-    coords.insert(std::make_pair(3, std::vector<float>(0.1555,	0.0655)));
-    coords.insert(std::make_pair(4, std::vector<float>(0.1555,	0)));
-    coords.insert(std::make_pair(5, std::vector<float>(0.1555,	-0.0655)));
-    coords.insert(std::make_pair(6, std::vector<float>(0.0815,	0.0655)));
-    coords.insert(std::make_pair(7, std::vector<float>(0.0815,	0)));
-    coords.insert(std::make_pair(8, std::vector<float>(0.0815,	-0.0655)));
+std::map<int, Eigen::Vector3f> WorldCoords::generateTagsInArmCoords(){
+    std::map<int, Eigen::Vector3f> coords;
+    coords.insert(std::make_pair(0, Eigen::Vector3f(0.2285,	0.0655, 0.)));
+    coords.insert(std::make_pair(1, Eigen::Vector3f(0.2285,	0., 0.)));
+    coords.insert(std::make_pair(2, Eigen::Vector3f(0.2285,	-0.0655, 0.)));
+    coords.insert(std::make_pair(3, Eigen::Vector3f(0.1555,	0.0655, 0.)));
+    coords.insert(std::make_pair(4, Eigen::Vector3f(0.1555,	0., 0.)));
+    coords.insert(std::make_pair(5, Eigen::Vector3f(0.1555,	-0.0655, 0.)));
+    coords.insert(std::make_pair(6, Eigen::Vector3f(0.0815,	0.0655, 0.)));
+    coords.insert(std::make_pair(7, Eigen::Vector3f(0.0815,	0., 0.)));
+    coords.insert(std::make_pair(8, Eigen::Vector3f(0.0815,	-0.0655, 0.)));
+    return coords;
 }
 
 void WorldCoords::run(){
@@ -146,7 +161,9 @@ void WorldCoords::run(){
     image_transport::ImageTransport it(n);
     image_transport::Publisher image_pub = it.advertise("/camera/image_raw", 1);
     ros::Publisher info_pub = n.advertise<sensor_msgs::CameraInfo>("/camera/camera_info", 1);
-    sensor_msgs::CameraInfo info_msg = generateCalibrationData();
+    info_msg = generateCalibrationData();
+    rs2_intr = createRs2Intrinsics();
+    bool extrinsics_calculated = false;
     int seq = 0;
       while(ros::ok()){
         std::cout<<"running!"<<std::endl;
@@ -186,6 +203,9 @@ void WorldCoords::run(){
         image_pub.publish(msg);
         info_msg.header.stamp = msg->header.stamp;
         info_pub.publish(info_msg);
+        if (!extrinsics_calculated){
+            extrinsics_calculated = calculateExtrinsics(tag_centers_3d_cam, tag_centers_3d_arm, R, t);
+        }
         ros::spinOnce();
     }
 }
@@ -287,20 +307,94 @@ bool WorldCoords::profile_changed(const std::vector<rs2::stream_profile>& curren
 }
 
 void WorldCoords::processTagCentersClbk(const std_msgs::Float32MultiArray& msg){
+    std::cout<<"here"<<std::endl;
     if (msg.layout.dim[0].size == 27){
         for (int i = 0; i < msg.layout.dim[0].size; i = i+3){
-            auto it = tag_centers_cam.find(static_cast<int>(msg.data[i]));
-            if (it != tag_centers_cam.end()){
+            auto it = tag_centers_pix_cam.find(static_cast<int>(msg.data[i]));
+            if (it != tag_centers_pix_cam.end()){
                 it->second[0] = msg.data[i+1];
                 it->second[1] = msg.data[i+2];
             } else {
-                tag_centers_cam.insert(std::make_pair<int, std::vector<float>>(static_cast<int>(msg.data[i]), {msg.data[i+1], msg.data[i+2]}));
+                tag_centers_pix_cam.insert(std::make_pair<int, Eigen::Vector2f>(static_cast<int>(msg.data[i]), Eigen::Vector2f(msg.data[i+1], msg.data[i+2])));
             }
         }
     }
-    if (tag_centers_cam.find(0) != tag_centers_cam.end()){
-        std::cout<<tag_centers_cam.find(0)->second[0]<<" "<<tag_centers_cam.find(0)->second[1]<<std::endl;
+
+    if (tag_centers_pix_cam.find(0) != tag_centers_pix_cam.end()){
+        std::cout<<tag_centers_pix_cam.find(0)->second[0]<<" "<<tag_centers_pix_cam.find(0)->second[1]<<std::endl;
     }
+}
+
+rs2_intrinsics WorldCoords::createRs2Intrinsics(){
+    rs2_intrinsics intr;
+    intr.width = info_msg.width;
+    intr.height = info_msg.height;
+    intr.coeffs[0] = info_msg.D[0];
+    intr.coeffs[1] = info_msg.D[1];
+    intr.coeffs[2] = info_msg.D[2];
+    intr.coeffs[3] = info_msg.D[3];
+    intr.coeffs[4] = info_msg.D[4];
+    intr.ppx = info_msg.K[2];
+    intr.ppx = info_msg.K[5];
+    intr.fx = info_msg.K[0];
+    intr.fy = info_msg.K[4];
+    intr.model = rs2_distortion::RS2_DISTORTION_INVERSE_BROWN_CONRADY;
+    return intr;
+}
+
+bool WorldCoords::calculateExtrinsics(const std::map<int, Eigen::Vector3f>& cam, 
+                                      const std::map<int, Eigen::Vector3f>& arm, 
+                                      Eigen::Matrix3f& R, 
+                                      Eigen::Vector3f& t){
+    int num_points = cam.size();
+    if (num_points == 9){
+        Eigen::MatrixXf X(3, cam.size());
+        Eigen::MatrixXf Y(3, cam.size());
+        Eigen::Vector3f pbar, qbar;
+        pbar << 0.0, 0.0, 0.0;
+        qbar << 0.0, 0.0, 0.0;
+        for (int i = 0; i < num_points; i++){
+            auto it_cam = cam.find(i);
+            auto it_arm = arm.find(i);
+            // assume wi = 1.0
+            pbar += it_cam->second;
+            qbar += it_cam->second;
+        }
+
+        // calc weighted centroids
+        pbar /= num_points;
+        qbar /= num_points;
+        
+        // calc centered vectors
+        for (int i = 0; i < num_points; i++){
+            auto it_cam = cam.find(i);
+            auto it_arm = arm.find(i);
+            X.col(i) << it_cam->second - pbar;
+            Y.col(i) << it_arm->second - qbar;
+        }
+
+        // calc covariance matrix
+        Eigen::Matrix3f S(3, 3);
+        S = X * Y.transpose();
+
+        // calc SVD
+        Eigen::JacobiSVD<Eigen::Matrix3f> svd(S);
+
+        // calc R
+        Eigen::Matrix3f U = svd.matrixU();
+        Eigen::Matrix3f V = svd.matrixV();
+        float det = (V*U.transpose()).determinant();
+        Eigen::Vector3f vec;
+        vec << 1, 1, det; 
+        Eigen::Matrix3f mid = vec.asDiagonal();
+        R = V * mid * U.transpose();
+
+        // calc t
+        t = qbar - R * pbar;
+
+        return true;
+    } else return false;
+
 }
 
 // void WorldCoords::calcRt(){
