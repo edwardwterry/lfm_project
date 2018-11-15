@@ -12,9 +12,9 @@
 #include <eigen3/Eigen/Eigen>
 #include <eigen3/Eigen/SVD>
 #include <eigen3/Eigen/Dense>
-// #include <camera_info_manager/camera_info_manager.h>
 
-
+#include <lfm/AprilTagDetection.h>
+#include <lfm/AprilTagDetectionArray.h>
 #include "lfm.h"
 
 #include <sstream>
@@ -64,6 +64,7 @@ class WorldCoords {
         std::map<int, Eigen::Vector3f> generateTagsInArmCoords();
         // void segmentByColor(cv::Mat & image, cv::Scalar target_color);
         void processTagCentersClbk(const std_msgs::Float32MultiArray& msg);
+        void processTag3dCentersClbk(const lfm::AprilTagDetectionArray& msg);
         rs2_intrinsics createRs2Intrinsics();
         sensor_msgs::CameraInfo generateCalibrationData();
         bool calculateExtrinsics(const std::map<int, Eigen::Vector3f>& cam, 
@@ -74,6 +75,7 @@ class WorldCoords {
         ros::NodeHandle n;
         rs2::pipeline pipe;
         ros::Subscriber tag_centers_sub = n.subscribe("/apriltags2_ros_continuous_node/tag_pixel_centers", 1000, &WorldCoords::processTagCentersClbk, this);
+        ros::Subscriber tag_centers_3d_sub = n.subscribe("/tag_detections", 1000, &WorldCoords::processTag3dCentersClbk, this);
         std::map<int, Eigen::Vector2f> tag_centers_pix_cam;
         std::map<int, Eigen::Vector3f> tag_centers_3d_cam;
         std::map<int, Eigen::Vector3f> tag_centers_3d_arm;
@@ -163,10 +165,12 @@ void WorldCoords::run(){
     ros::Publisher info_pub = n.advertise<sensor_msgs::CameraInfo>("/camera/camera_info", 1);
     info_msg = generateCalibrationData();
     rs2_intr = createRs2Intrinsics();
+    tag_centers_3d_arm = generateTagsInArmCoords();
+
     bool extrinsics_calculated = false;
     int seq = 0;
       while(ros::ok()){
-        std::cout<<"running!"<<std::endl;
+        // std::cout<<"running!"<<std::endl;
         rs2::frameset frameset = pipe.wait_for_frames();
         if (profile_changed(pipe.get_active_profile().get_streams(), profile.get_streams()))
         {
@@ -307,7 +311,7 @@ bool WorldCoords::profile_changed(const std::vector<rs2::stream_profile>& curren
 }
 
 void WorldCoords::processTagCentersClbk(const std_msgs::Float32MultiArray& msg){
-    std::cout<<"here"<<std::endl;
+    // std::cout<<"here"<<std::endl;
     if (msg.layout.dim[0].size == 27){
         for (int i = 0; i < msg.layout.dim[0].size; i = i+3){
             auto it = tag_centers_pix_cam.find(static_cast<int>(msg.data[i]));
@@ -320,8 +324,32 @@ void WorldCoords::processTagCentersClbk(const std_msgs::Float32MultiArray& msg){
         }
     }
 
-    if (tag_centers_pix_cam.find(0) != tag_centers_pix_cam.end()){
-        std::cout<<tag_centers_pix_cam.find(0)->second[0]<<" "<<tag_centers_pix_cam.find(0)->second[1]<<std::endl;
+    // if (tag_centers_pix_cam.find(0) != tag_centers_pix_cam.end()){
+    //     std::cout<<tag_centers_pix_cam.find(0)->second[0]<<" "<<tag_centers_pix_cam.find(0)->second[1]<<std::endl;
+    // }
+}
+
+void WorldCoords::processTag3dCentersClbk(const lfm::AprilTagDetectionArray& msg){
+    // std::cout<<sizeof(msg.detections)<<std::endl;
+    // std::cout<<sizeof(msg.detections[0])<<std::endl;
+    // for (int i = 0; i < sizeof(msg.detections)/sizeof(msg.detections[0]); i++){
+    for (int i = 0; i < 9; i++){
+        int id = msg.detections[i].id[0];
+        std::cout<<"id: "<<id<<std::endl;
+        auto it = tag_centers_3d_cam.find(id);
+        Eigen::Vector3f pose = Eigen::Vector3f(msg.detections[i].pose.pose.pose.position.x,
+                                               msg.detections[i].pose.pose.pose.position.y,
+                                               msg.detections[i].pose.pose.pose.position.z);
+        if (it != tag_centers_3d_cam.end()){
+            it->second << pose;
+        } else {
+            // tag_centers_3d_cam.insert(std::make_pair<int, Eigen::Vector3f>(id, pose));
+            tag_centers_3d_cam.insert(std::make_pair(id, pose));
+        }
+    }
+
+    if (tag_centers_3d_cam.find(0) != tag_centers_3d_cam.end()){
+        std::cout<<tag_centers_3d_cam.find(0)->second[0]<<" "<<tag_centers_3d_cam.find(0)->second[1]<<" "<<tag_centers_3d_cam.find(0)->second[2]<<std::endl;
     }
 }
 
@@ -378,7 +406,7 @@ bool WorldCoords::calculateExtrinsics(const std::map<int, Eigen::Vector3f>& cam,
         S = X * Y.transpose();
 
         // calc SVD
-        Eigen::JacobiSVD<Eigen::Matrix3f> svd(S);
+        Eigen::JacobiSVD<Eigen::Matrix3f> svd(S, Eigen::ComputeFullU | Eigen::ComputeFullV);
 
         // calc R
         Eigen::Matrix3f U = svd.matrixU();

@@ -2,6 +2,8 @@
 2352bb98a156cd7ea6b3b7a23b299b9c /home/et/Documents/lfm_ws/devel/include/apriltags2_ros/AnalyzeSingleImage.h
 af019d51f8e6f50665672ff857981dca /home/et/Documents/lfm_ws/devel/include/apriltags2_ros/AprilTagDetection.h
 5ef336f99a174cf2d6bcc69483626460 /home/et/Documents/lfm_ws/devel/include/apriltags2_ros/AprilTagDetectionArray.h
+7fa4bb2a7ad5dd96339639e23b9c3c0d /home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetection.h
+f4bc03985915a92948e36126e2e4581a /home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetectionArray.h
 eb599d78c41c4f11491eeaf7302b1188 /home/et/Documents/lfm_ws/devel/include/opencv_apps/AddingImagesConfig.h
 417e566f186fa15e93bd75c6370423d6 /home/et/Documents/lfm_ws/devel/include/opencv_apps/CamShiftConfig.h
 50c19871021a4a2587a07fbbd32b4eef /home/et/Documents/lfm_ws/devel/include/opencv_apps/Circle.h
@@ -67,6 +69,9 @@ c22a1f2d99b2b5c74eae15c1c59eaee0 /home/et/Documents/lfm_ws/devel/include/opencv_
 060a2915eccbca8c604761e93f0ff301 /home/et/Documents/lfm_ws/devel/lib/python2.7/dist-packages/apriltags2_ros/msg/__init__.py
 517ab90e23d82caf588e20157cf6821c /home/et/Documents/lfm_ws/devel/lib/python2.7/dist-packages/apriltags2_ros/srv/_AnalyzeSingleImage.py
 ba3c9025b39c5e46444096a8f2a26332 /home/et/Documents/lfm_ws/devel/lib/python2.7/dist-packages/apriltags2_ros/srv/__init__.py
+4d1989af3dae87034043a62fb27d3d46 /home/et/Documents/lfm_ws/devel/lib/python2.7/dist-packages/lfm/msg/_AprilTagDetection.py
+ad42aef0b77a257ac66a7408dbc72128 /home/et/Documents/lfm_ws/devel/lib/python2.7/dist-packages/lfm/msg/_AprilTagDetectionArray.py
+20fff9243b002dcd5efd7ee2a4c40b10 /home/et/Documents/lfm_ws/devel/lib/python2.7/dist-packages/lfm/msg/__init__.py
 17de634d2c4507265d5dbe4518b06de8 /home/et/Documents/lfm_ws/devel/lib/python2.7/dist-packages/opencv_apps/msg/_Circle.py
 ea45115fa971593b3209bf2818777c49 /home/et/Documents/lfm_ws/devel/lib/python2.7/dist-packages/opencv_apps/msg/_CircleArray.py
 bbc958450243ff28becc42897da7694c /home/et/Documents/lfm_ws/devel/lib/python2.7/dist-packages/opencv_apps/msg/_CircleArrayStamped.py
@@ -106,6 +111,8 @@ de44b27d80313693c1de3fc08099e691 /home/et/Documents/lfm_ws/devel/lib/python2.7/d
 b8cf94152e9c3c7ee4726a9f1961f236 /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/apriltags2_ros/msg/AprilTagDetection.lisp
 f1170ce4f76a1fa0c659edb2b80c38f0 /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/apriltags2_ros/msg/AprilTagDetectionArray.lisp
 b87eeda01b4057724532a37769b69259 /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/apriltags2_ros/srv/AnalyzeSingleImage.lisp
+e4bb9e7d6a8cd8e0fcfe808b0178b9ae /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetection.lisp
+6c11aa55820fd595baa3159ec74ba661 /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetectionArray.lisp
 37707e75613521384ba340c5300c19f1 /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/opencv_apps/msg/Circle.lisp
 3486bb5f00a67eae42d6dc61fa84402f /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/opencv_apps/msg/CircleArray.lisp
 5c90a12c337dff8a1fded43d9714582e /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/opencv_apps/msg/CircleArrayStamped.lisp
@@ -142,6 +149,8 @@ af4d78f9131e8f17bf717d6169971800 /home/et/Documents/lfm_ws/devel/share/common-li
 764cbf619531e9e06b790f115dd58147 /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/apriltags2_ros/msg/AprilTagDetection.js
 1dfab36d6622fe7e83639077980fef06 /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/apriltags2_ros/msg/AprilTagDetectionArray.js
 612f7926030d1d478dff4157593b1252 /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/apriltags2_ros/srv/AnalyzeSingleImage.js
+5eb4415ad166fc1253e63f98b7305561 /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetection.js
+76b9069bcee7cda1386b90844ca96a42 /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetectionArray.js
 08bef990cffdffc0ebf5d4f2383ea57e /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/opencv_apps/msg/Circle.js
 57e43587822e6028a435f2e379161753 /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/opencv_apps/msg/CircleArray.js
 e38fe52e0b5a2bf101d7649d233c175e /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/opencv_apps/msg/CircleArrayStamped.js
@@ -179,6 +188,9 @@ d68ad8c9fdc5298f0dcfd4e16b359778 /home/et/Documents/lfm_ws/devel/share/roseus/ro
 0e441c6cb44132ddaace9040fc5263e6 /home/et/Documents/lfm_ws/devel/share/roseus/ros/apriltags2_ros/msg/AprilTagDetection.l
 6b1b10bbb7c486671d13a7c45ff3bc06 /home/et/Documents/lfm_ws/devel/share/roseus/ros/apriltags2_ros/msg/AprilTagDetectionArray.l
 e998202cc00a1a16b66b1bfd8f95b03c /home/et/Documents/lfm_ws/devel/share/roseus/ros/apriltags2_ros/srv/AnalyzeSingleImage.l
+b5eb2a79c2849b9a29f64099e46bd744 /home/et/Documents/lfm_ws/devel/share/roseus/ros/lfm/manifest.l
+dddfeb95c16c485219cc53c68be62d2b /home/et/Documents/lfm_ws/devel/share/roseus/ros/lfm/msg/AprilTagDetection.l
+510f2cacaf177e1dedcf696655288685 /home/et/Documents/lfm_ws/devel/share/roseus/ros/lfm/msg/AprilTagDetectionArray.l
 f161704ce6b57264844d4ecc5c469cae /home/et/Documents/lfm_ws/devel/share/roseus/ros/opencv_apps/manifest.l
 ba850c417e076c6d2bf5df7c45a12879 /home/et/Documents/lfm_ws/devel/share/roseus/ros/opencv_apps/msg/Circle.l
 dd9e7b81d0702fa2629259b853ecc140 /home/et/Documents/lfm_ws/devel/share/roseus/ros/opencv_apps/msg/CircleArray.l
@@ -237,6 +249,13 @@ e42baba17e5bdcda11dfbd85110c5a8c image_common/camera_calibration_parsers/test/CM
 0ce4837012099dda5e8f0f2cfe4e2610 image_common/polled_camera/CMakeFiles/polled_camera_generate_messages_lisp
 0ce4837012099dda5e8f0f2cfe4e2610 image_common/polled_camera/CMakeFiles/polled_camera_generate_messages_nodejs
 0ce4837012099dda5e8f0f2cfe4e2610 image_common/polled_camera/CMakeFiles/polled_camera_generate_messages_py
+c5730208ef0a2b085a63c8b1651a3047 lfm/CMakeFiles/_lfm_generate_messages_check_deps_AprilTagDetection
+01e33b6c9129b5bb2d88d4869d9e3c7b lfm/CMakeFiles/_lfm_generate_messages_check_deps_AprilTagDetectionArray
+3056b9abcdc738db97ce4890c89e7c20 lfm/CMakeFiles/lfm_generate_messages_cpp
+3056b9abcdc738db97ce4890c89e7c20 lfm/CMakeFiles/lfm_generate_messages_eus
+3056b9abcdc738db97ce4890c89e7c20 lfm/CMakeFiles/lfm_generate_messages_lisp
+3056b9abcdc738db97ce4890c89e7c20 lfm/CMakeFiles/lfm_generate_messages_nodejs
+3056b9abcdc738db97ce4890c89e7c20 lfm/CMakeFiles/lfm_generate_messages_py
 d0b2234226b991437211ff3ca142f8e9 opencv_apps/CMakeFiles/_opencv_apps_generate_messages_check_deps_Circle
 eda3c94b58da5a0b1919c7b80dc2207a opencv_apps/CMakeFiles/_opencv_apps_generate_messages_check_deps_CircleArray
 b09dbd56ded8f638f43649a53b5c09d1 opencv_apps/CMakeFiles/_opencv_apps_generate_messages_check_deps_CircleArrayStamped
