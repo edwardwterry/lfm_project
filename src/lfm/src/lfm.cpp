@@ -65,12 +65,13 @@ class WorldCoords {
         // void segmentByColor(cv::Mat & image, cv::Scalar target_color);
         void processTagCentersClbk(const std_msgs::Float32MultiArray& msg);
         void processTag3dCentersClbk(const lfm::AprilTagDetectionArray& msg);
+        Eigen::Vector3f transformCamToArm(const Eigen::Vector3f& cam, const Eigen::Matrix3f& R, const Eigen::Vector3f& t);
         rs2_intrinsics createRs2Intrinsics();
         sensor_msgs::CameraInfo generateCalibrationData();
         bool calculateExtrinsics(const std::map<int, Eigen::Vector3f>& cam, 
-                                                const std::map<int, Eigen::Vector3f>& arm, 
-                                                Eigen::Matrix3f& R, 
-                                                Eigen::Vector3f& t);
+                                 const std::map<int, Eigen::Vector3f>& arm, 
+                                 Eigen::Matrix3f& R, 
+                                 Eigen::Vector3f& t);
 
         ros::NodeHandle n;
         rs2::pipeline pipe;
@@ -142,15 +143,15 @@ sensor_msgs::CameraInfo WorldCoords::generateCalibrationData()
 
 std::map<int, Eigen::Vector3f> WorldCoords::generateTagsInArmCoords(){
     std::map<int, Eigen::Vector3f> coords;
-    coords.insert(std::make_pair(0, Eigen::Vector3f(0.2285,	0.0655, 0.)));
+    coords.insert(std::make_pair(0, Eigen::Vector3f(0.2285,	-0.0655, 0.)));
     coords.insert(std::make_pair(1, Eigen::Vector3f(0.2285,	0., 0.)));
-    coords.insert(std::make_pair(2, Eigen::Vector3f(0.2285,	-0.0655, 0.)));
-    coords.insert(std::make_pair(3, Eigen::Vector3f(0.1555,	0.0655, 0.)));
+    coords.insert(std::make_pair(2, Eigen::Vector3f(0.2285,	0.0655, 0.)));
+    coords.insert(std::make_pair(3, Eigen::Vector3f(0.1555,	-0.0655, 0.)));
     coords.insert(std::make_pair(4, Eigen::Vector3f(0.1555,	0., 0.)));
-    coords.insert(std::make_pair(5, Eigen::Vector3f(0.1555,	-0.0655, 0.)));
-    coords.insert(std::make_pair(6, Eigen::Vector3f(0.0815,	0.0655, 0.)));
+    coords.insert(std::make_pair(5, Eigen::Vector3f(0.1555,	0.0655, 0.)));
+    coords.insert(std::make_pair(6, Eigen::Vector3f(0.0815,	-0.0655, 0.)));
     coords.insert(std::make_pair(7, Eigen::Vector3f(0.0815,	0., 0.)));
-    coords.insert(std::make_pair(8, Eigen::Vector3f(0.0815,	-0.0655, 0.)));
+    coords.insert(std::make_pair(8, Eigen::Vector3f(0.0815,	0.0655, 0.)));
     return coords;
 }
 
@@ -209,6 +210,9 @@ void WorldCoords::run(){
         info_pub.publish(info_msg);
         if (!extrinsics_calculated){
             extrinsics_calculated = calculateExtrinsics(tag_centers_3d_cam, tag_centers_3d_arm, R, t);
+        }
+        if (extrinsics_calculated){
+            std::cout<<"tag 0:"<<transformCamToArm(tag_centers_3d_cam.find(0)->second, R, t)<<std::endl;
         }
         ros::spinOnce();
     }
@@ -335,7 +339,7 @@ void WorldCoords::processTag3dCentersClbk(const lfm::AprilTagDetectionArray& msg
     // for (int i = 0; i < sizeof(msg.detections)/sizeof(msg.detections[0]); i++){
     for (int i = 0; i < 9; i++){
         int id = msg.detections[i].id[0];
-        std::cout<<"id: "<<id<<std::endl;
+        // std::cout<<"id: "<<id<<std::endl;
         auto it = tag_centers_3d_cam.find(id);
         Eigen::Vector3f pose = Eigen::Vector3f(msg.detections[i].pose.pose.pose.position.x,
                                                msg.detections[i].pose.pose.pose.position.y,
@@ -348,9 +352,20 @@ void WorldCoords::processTag3dCentersClbk(const lfm::AprilTagDetectionArray& msg
         }
     }
 
-    if (tag_centers_3d_cam.find(0) != tag_centers_3d_cam.end()){
-        std::cout<<tag_centers_3d_cam.find(0)->second[0]<<" "<<tag_centers_3d_cam.find(0)->second[1]<<" "<<tag_centers_3d_cam.find(0)->second[2]<<std::endl;
-    }
+    // if (tag_centers_3d_cam.find(0) != tag_centers_3d_cam.end()){
+    //     std::cout<<tag_centers_3d_cam.find(0)->second[0]<<" "<<tag_centers_3d_cam.find(0)->second[1]<<" "<<tag_centers_3d_cam.find(0)->second[2]<<std::endl;
+    // }
+}
+
+Eigen::Vector3f WorldCoords::transformCamToArm(const Eigen::Vector3f& cam, const Eigen::Matrix3f& R, const Eigen::Vector3f& t){
+    std::cout<<"cam: "<<cam<<std::endl;
+    std::cout<<"t: "<<t<<std::endl;
+
+    return R * cam + t; 
+    // return R.inverse() * cam - t; 
+    // std::cout<<"cam + t: "<<cam + t<<std::endl;
+    // std::cout<<"cam - t: "<<cam - t<<std::endl;
+    // return R * (cam - t);
 }
 
 rs2_intrinsics WorldCoords::createRs2Intrinsics(){
@@ -386,13 +401,16 @@ bool WorldCoords::calculateExtrinsics(const std::map<int, Eigen::Vector3f>& cam,
             auto it_arm = arm.find(i);
             // assume wi = 1.0
             pbar += it_cam->second;
-            qbar += it_cam->second;
+            qbar += it_arm->second;
         }
 
         // calc weighted centroids
         pbar /= num_points;
         qbar /= num_points;
         
+        std::cout<<pbar<<std::endl;        
+        std::cout<<qbar<<std::endl;        
+
         // calc centered vectors
         for (int i = 0; i < num_points; i++){
             auto it_cam = cam.find(i);
@@ -400,7 +418,10 @@ bool WorldCoords::calculateExtrinsics(const std::map<int, Eigen::Vector3f>& cam,
             X.col(i) << it_cam->second - pbar;
             Y.col(i) << it_arm->second - qbar;
         }
-
+        std::cout<<"X: \n";
+        std::cout<<X<<std::endl;
+        std::cout<<"Y: \n";
+        std::cout<<Y<<std::endl;
         // calc covariance matrix
         Eigen::Matrix3f S(3, 3);
         S = X * Y.transpose();
@@ -419,6 +440,9 @@ bool WorldCoords::calculateExtrinsics(const std::map<int, Eigen::Vector3f>& cam,
 
         // calc t
         t = qbar - R * pbar;
+
+        std::cout<<"R:"<<R<<std::endl;
+        std::cout<<"t:"<<t<<std::endl;
 
         return true;
     } else return false;
