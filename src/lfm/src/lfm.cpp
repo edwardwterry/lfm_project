@@ -1,23 +1,23 @@
 
 #include "lfm.h"
 
-class WorldCoords {
+class Controller {
     public:
         void run();
-        void remove_background(rs2::video_frame& other, const rs2::depth_frame& depth_frame, float depth_scale);//, float clipping_dist);
-        float get_depth_scale(rs2::device dev);
-        rs2_stream find_stream_to_align(const std::vector<rs2::stream_profile>& streams);
-        bool profile_changed(const std::vector<rs2::stream_profile>& current, const std::vector<rs2::stream_profile>& prev);
+        // void remove_background(rs2::video_frame& other, const rs2::depth_frame& depth_frame, float depth_scale);//, float clipping_dist);
+        // float get_depth_scale(rs2::device dev);
+        // rs2_stream find_stream_to_align(const std::vector<rs2::stream_profile>& streams);
+        // bool profile_changed(const std::vector<rs2::stream_profile>& current, const std::vector<rs2::stream_profile>& prev);
         std::map<int, Eigen::Vector3f> generateTagsInArmCoords();
-        void processTagCentersClbk(const std_msgs::Float32MultiArray& msg);
+        // void processTagCentersClbk(const std_msgs::Float32MultiArray& msg);
         void processTag3dCentersClbk(const lfm::AprilTagDetectionArray& msg);
         void processActionClbk(const lfm::Action& msg);
-        Eigen::Vector3f getTagCoords(const int& tag_id);
+        Eigen::Vector3f getTagCoordsMillimeters(const int& tag_id);
         Eigen::Vector3f calcReleaseCoords(const int& tag_id, const float& dist, const float& angle);
         Eigen::Vector3f cartesianToPolar(const Eigen::Vector3f& pos);
         void pickTagClbk(const std_msgs::Int32& msg);
         void statusClbk(const swiftpro::SwiftproState& msg);
-        void managePump();
+        void sendPumpCmd();
         bool checkReached();
         void moveVertical();
         void updateState();
@@ -33,13 +33,13 @@ class WorldCoords {
 
         ros::NodeHandle n;
         rs2::pipeline pipe;
-        // ros::Subscriber tag_centers_sub = n.subscribe("/apriltags2_ros_continuous_node/tag_pixel_centers", 1000, &WorldCoords::processTagCentersClbk, this);
-        ros::Subscriber tag_centers_3d_sub = n.subscribe("/tag_detections", 1000, &WorldCoords::processTag3dCentersClbk, this);
-        // ros::Subscriber pick_tag_sub = n.subscribe("/pick_tag", 1, &WorldCoords::pickTagClbk, this);
-	    ros::Subscriber status_sub = n.subscribe("SwiftproState_topic", 1, &WorldCoords::statusClbk, this);
+        // ros::Subscriber tag_centers_sub = n.subscribe("/apriltags2_ros_continuous_node/tag_pixel_centers", 1000, &Controller::processTagCentersClbk, this);
+        ros::Subscriber tag_centers_3d_sub = n.subscribe("/tag_detections", 1000, &Controller::processTag3dCentersClbk, this);
+        // ros::Subscriber pick_tag_sub = n.subscribe("/pick_tag", 1, &Controller::pickTagClbk, this);
+	    ros::Subscriber status_sub = n.subscribe("SwiftproState_topic", 1, &Controller::statusClbk, this);
 
-        ros::Publisher arm_pos_cmd_pub = n.advertise<swiftpro::position>("/arm_pos_cmd", 1);
-        ros::Publisher pump_pub = n.advertise<swiftpro::position>("/pump_topic", 1); // TODO, check topic name
+        ros::Publisher arm_pos_cmd_pub = n.advertise<swiftpro::position>("/position_write_topic", 1);
+        ros::Publisher pump_pub = n.advertise<swiftpro::position>("/pump_topic", 1);
         std::map<int, Eigen::Vector2f> tag_centers_pix_cam;
         std::map<int, Eigen::Vector3f> tag_centers_3d_cam;
         std::map<int, Eigen::Vector3f> tag_centers_3d_arm;
@@ -67,7 +67,6 @@ class WorldCoords {
         enum ArmState{
             IDLE = -1,
             HOVER_START,
-            DROP,
             PICK,
             RELEASE,
             HOVER_END,
@@ -77,7 +76,7 @@ class WorldCoords {
         int arm_state = ArmState::IDLE;
 };
 
-sensor_msgs::CameraInfo WorldCoords::generateCalibrationData()
+sensor_msgs::CameraInfo Controller::generateCalibrationData()
 {
   sensor_msgs::CameraInfo ci;
 
@@ -132,7 +131,7 @@ sensor_msgs::CameraInfo WorldCoords::generateCalibrationData()
   return ci;
 }
 
-std::map<int, Eigen::Vector3f> WorldCoords::generateTagsInArmCoords(){
+std::map<int, Eigen::Vector3f> Controller::generateTagsInArmCoords(){
     std::map<int, Eigen::Vector3f> coords;
     coords.insert(std::make_pair(0, Eigen::Vector3f(0.2435,	-0.0655, 0.)));
     coords.insert(std::make_pair(1, Eigen::Vector3f(0.2435,	0., 0.)));
@@ -146,7 +145,7 @@ std::map<int, Eigen::Vector3f> WorldCoords::generateTagsInArmCoords(){
     return coords;
 }
 
-void WorldCoords::run(){
+void Controller::run(){
     rs2::pipeline_profile profile = pipe.start();
     // float depth_scale = get_depth_scale(profile.get_device());
     // rs2_stream align_to = find_stream_to_align(profile.get_streams());
@@ -188,7 +187,7 @@ void WorldCoords::run(){
         // Passing both frames to remove_background so it will "strip" the background
         // NOTE: in this example, we alter the buffer of the other frame, instead of copying it and altering the copy
         //       This behavior is not recommended in real application since the other frame could be used elsewhere
-        // WorldCoords::remove_background(other_frame, aligned_depth_frame, depth_scale);//, depth_clipping_distance);
+        // Controller::remove_background(other_frame, aligned_depth_frame, depth_scale);//, depth_clipping_distance);
         // const int w = other_frame.as<rs2::video_frame>().get_width();
         // const int h = other_frame.as<rs2::video_frame>().get_height();
         // cv::Mat image(cv::Size(w, h), CV_8UC3, (void*)other_frame.get_data(), cv::Mat::AUTO_STEP);
@@ -209,36 +208,37 @@ void WorldCoords::run(){
             home.z = 100.0f;
             arm_pos_desired = Eigen::Vector3f(home.x, home.y, home.z);
             arm_pos_cmd_pub.publish(home); // move it out of the way
-            if (WorldCoords::checkReached()){
+            if (Controller::checkReached()){
                 ROS_INFO("Calculating extrinsics...");
                 extrinsics_calculated = calculateExtrinsics(tag_centers_3d_cam, tag_centers_3d_arm, R, t);
             }
         }
+
+        // do the real work
         updateState();
         sendPosCmd();
-        managePump();
+        sendPumpCmd();
+
         ros::spinOnce();
     }
 }
 
+// void Controller::processTagCentersClbk(const std_msgs::Float32MultiArray& msg){
+//     // std::cout<<"here"<<std::endl;
+//     if (msg.layout.dim[0].size == 27){
+//         for (int i = 0; i < msg.layout.dim[0].size; i = i+3){
+//             auto it = tag_centers_pix_cam.find(static_cast<int>(msg.data[i]));
+//             if (it != tag_centers_pix_cam.end()){
+//                 it->second[0] = msg.data[i+1];
+//                 it->second[1] = msg.data[i+2];
+//             } else {
+//                 tag_centers_pix_cam.insert(std::make_pair<int, Eigen::Vector2f>(static_cast<int>(msg.data[i]), Eigen::Vector2f(msg.data[i+1], msg.data[i+2])));
+//             }
+//         }
+//     }
+// }
 
-
-void WorldCoords::processTagCentersClbk(const std_msgs::Float32MultiArray& msg){
-    // std::cout<<"here"<<std::endl;
-    if (msg.layout.dim[0].size == 27){
-        for (int i = 0; i < msg.layout.dim[0].size; i = i+3){
-            auto it = tag_centers_pix_cam.find(static_cast<int>(msg.data[i]));
-            if (it != tag_centers_pix_cam.end()){
-                it->second[0] = msg.data[i+1];
-                it->second[1] = msg.data[i+2];
-            } else {
-                tag_centers_pix_cam.insert(std::make_pair<int, Eigen::Vector2f>(static_cast<int>(msg.data[i]), Eigen::Vector2f(msg.data[i+1], msg.data[i+2])));
-            }
-        }
-    }
-}
-
-void WorldCoords::processTag3dCentersClbk(const lfm::AprilTagDetectionArray& msg){
+void Controller::processTag3dCentersClbk(const lfm::AprilTagDetectionArray& msg){
     int num_detections = msg.detections.size();
     for (int i = 0; i < num_detections; i++){
         int id = msg.detections[i].id[0];
@@ -255,11 +255,11 @@ void WorldCoords::processTag3dCentersClbk(const lfm::AprilTagDetectionArray& msg
     }
 }
 
-// void WorldCoords::pickTagClbk(const std_msgs::Int32& msg){
+// void Controller::pickTagClbk(const std_msgs::Int32& msg){
 //     int tag_id = msg.data;
 //     std::cout<<"tag_id: "<<tag_id<<std::endl;
 //     if (tag_centers_3d_cam.find(tag_id) != tag_centers_3d_cam.end()){
-//         arm_pos_desired = WorldCoords::transformCamToArm(tag_centers_3d_cam.find(tag_id)->second); // look up tag location
+//         arm_pos_desired = Controller::transformCamToArm(tag_centers_3d_cam.find(tag_id)->second); // look up tag location
 //         // arm_pos_desired = tag_centers_3d_cam.find(tag_id)->second; // look up tag location
 //         arm_pos_desired[2] = 10.0f; // mm
 //         swiftpro::position pos;
@@ -270,7 +270,7 @@ void WorldCoords::processTag3dCentersClbk(const lfm::AprilTagDetectionArray& msg
 //     }
 // }
 
-void WorldCoords::updateState(){
+void Controller::updateState(){
     switch(arm_state){
         case ArmState::IDLE:
             arm_pos_desired = home_pos;
@@ -280,16 +280,16 @@ void WorldCoords::updateState(){
             arm_pos_sequence.clear();
             break;
         default:
-            if (WorldCoords::checkReached()){
-                arm_pos_desired = arm_pos_sequence[arm_state];
+            if (Controller::checkReached()){
                 arm_state++;
+                arm_pos_desired = arm_pos_sequence[arm_state];
             }
     }
 }
 
-bool WorldCoords::inBounds(const Eigen::Vector3f& pos){
+bool Controller::inBounds(const Eigen::Vector3f& pos){
     bool in_bounds;
-    Eigen::Vector3f polar = WorldCoords::cartesianToPolar(pos);
+    Eigen::Vector3f polar = Controller::cartesianToPolar(pos);
     if (polar[0] <= R_limits[0]  || polar[0] >= R_limits[1]  || 
         polar[1] <= th_limits[0] || polar[1] >= th_limits[1] || 
         polar[2] <= z_limits[0]  || polar[2] >= z_limits[1]) {
@@ -301,15 +301,15 @@ bool WorldCoords::inBounds(const Eigen::Vector3f& pos){
     return in_bounds;
 }
 
-void WorldCoords::sendPosCmd(){
+void Controller::sendPosCmd(){
     swiftpro::position pos;
-    pos.x = arm_pos_desired[0] * 1000.0f; // mm
-    pos.y = arm_pos_desired[1] * 1000.0f; // mm
+    pos.x = arm_pos_desired[0];
+    pos.y = arm_pos_desired[1];
     pos.z = arm_pos_desired[2];
     arm_pos_cmd_pub.publish(pos); // send to robot    
 }
 
-void WorldCoords::managePump(){
+void Controller::sendPumpCmd(){
     std_msgs::Bool msg;
     if (arm_state == ArmState::PICK){
         msg.data = true;
@@ -317,13 +317,13 @@ void WorldCoords::managePump(){
     pump_pub.publish(msg);
 }
 
-void WorldCoords::statusClbk(const swiftpro::SwiftproState& msg){
+void Controller::statusClbk(const swiftpro::SwiftproState& msg){
     arm_pos_actual[0] = msg.x;
     arm_pos_actual[1] = msg.y;
     arm_pos_actual[2] = msg.z;
 }
 
-bool WorldCoords::checkReached(){
+bool Controller::checkReached(){
     for (int i = 0; i < 3; i++){
         if (abs(arm_pos_desired[i] - arm_pos_actual[i]) > pos_error_tolerance){
             return false;
@@ -332,7 +332,7 @@ bool WorldCoords::checkReached(){
     return true;
 }
 
-// void WorldCoords::moveVertical(){
+// void Controller::moveVertical(){
 //     if (!is_down){
 //         arm_pos_desired[2] = 0.0f;
 //     } else {
@@ -345,28 +345,27 @@ bool WorldCoords::checkReached(){
 //     arm_pos_cmd_pub.publish(pos); // send to robot
 // }
 
-Eigen::Vector3f WorldCoords::transformCamToArm(const Eigen::Vector3f& cam){
+Eigen::Vector3f Controller::transformCamToArm(const Eigen::Vector3f& cam){
     return R * cam + t; 
 }
 
-void WorldCoords::processActionClbk(const lfm::Action& msg){
-    Eigen::Vector3f hover_start, drop, pick, release, hover_end, clear; 
+void Controller::processActionClbk(const lfm::Action& msg){
+    Eigen::Vector3f hover_start, pick, release, hover_end, clear; 
     int tag_id = msg.target_tag;
-    Eigen::Vector3f coords = WorldCoords::getTagCoords(tag_id);
+    Eigen::Vector3f coords = Controller::getTagCoordsMillimeters(tag_id);
     hover_start[0] = coords[0];
     hover_start[1] = coords[1];
     hover_start[2] = standoff_height;
-    drop = hover_start;
-    drop[2] = pick_height;
-    pick = drop;
-    release = WorldCoords::calcReleaseCoords(tag_id, msg.dist, msg.angle);
+    pick = hover_start;
+    pick[2] = pick_height;
+    release = Controller::calcReleaseCoords(tag_id, msg.dist, msg.angle); // msg.dist must be in mm!
     hover_end = release;
     hover_end[2] = standoff_height;
     clear = hover_end;
     clear[2] = clear_height;
-    arm_pos_sequence = {hover_start, drop, pick, release, hover_end, clear};
+    arm_pos_sequence = {hover_start, pick, release, hover_end, clear};
     for (auto pos : arm_pos_sequence){
-        if (!WorldCoords::inBounds(pos)){
+        if (!Controller::inBounds(pos)){
             std::cout<<"Illegal move requested. Try again!"<<std::endl;
             arm_state = ArmState::IDLE;
             arm_pos_sequence.clear();
@@ -376,17 +375,18 @@ void WorldCoords::processActionClbk(const lfm::Action& msg){
     arm_state = ArmState::HOVER_START; // if all clear, move to the first position!
 }
 
-Eigen::Vector3f WorldCoords::getTagCoords(const int& tag_id){
+Eigen::Vector3f Controller::getTagCoordsMillimeters(const int& tag_id){
     Eigen::Vector3f coords;
     if (tag_centers_3d_cam.find(tag_id) != tag_centers_3d_cam.end()){
-        coords = WorldCoords::transformCamToArm(tag_centers_3d_cam.find(tag_id)->second);
+        coords = Controller::transformCamToArm(tag_centers_3d_cam.find(tag_id)->second);
     }
+    coords *= 1000.0; // this converts to mm!
     return coords;
 }
 
-Eigen::Vector3f WorldCoords::calcReleaseCoords(const int& tag_id, const float& dist, const float& angle){
+Eigen::Vector3f Controller::calcReleaseCoords(const int& tag_id, const float& dist, const float& angle){
     Eigen::Vector3f start, end; 
-    start = WorldCoords::getTagCoords(tag_id);
+    start = Controller::getTagCoordsMillimeters(tag_id);
     float dx = dist * cos(angle * M_PI / 180.0);
     float dy = dist * sin(angle * M_PI / 180.0);
     end[0] = start[0] + dx;
@@ -395,7 +395,7 @@ Eigen::Vector3f WorldCoords::calcReleaseCoords(const int& tag_id, const float& d
     return end;
 }
 
-Eigen::Vector3f WorldCoords::cartesianToPolar(const Eigen::Vector3f& pos){
+Eigen::Vector3f Controller::cartesianToPolar(const Eigen::Vector3f& pos){
     Eigen::Vector3f polar; // {R, th, z}
     polar[0] = sqrt(pos[0] * pos[0] + pos[1] * pos[1]);
     polar[1] = atan2(pos[1], pos[0]);
@@ -403,7 +403,7 @@ Eigen::Vector3f WorldCoords::cartesianToPolar(const Eigen::Vector3f& pos){
     return polar;
 }
 
-rs2_intrinsics WorldCoords::createRs2Intrinsics(){
+rs2_intrinsics Controller::createRs2Intrinsics(){
     rs2_intrinsics intr;
     intr.width = info_msg.width;
     intr.height = info_msg.height;
@@ -420,7 +420,7 @@ rs2_intrinsics WorldCoords::createRs2Intrinsics(){
     return intr;
 }
 
-bool WorldCoords::calculateExtrinsics(const std::map<int, Eigen::Vector3f>& cam, 
+bool Controller::calculateExtrinsics(const std::map<int, Eigen::Vector3f>& cam, 
                                       const std::map<int, Eigen::Vector3f>& arm, 
                                       Eigen::Matrix3f& R, 
                                       Eigen::Vector3f& t){
@@ -487,7 +487,7 @@ bool WorldCoords::calculateExtrinsics(const std::map<int, Eigen::Vector3f>& cam,
 int main (int argc, char **argv)
 {
 	ros::init(argc, argv, "lfm");
-    WorldCoords wc;
-    wc.run();
+    Controller c;
+    c.run();
 	return 0;
 }
