@@ -6,6 +6,7 @@ lfm/CMakeFiles/lfm_node.dir/src/lfm.cpp.o: /home/et/Documents/lfm_ws/devel/inclu
 lfm/CMakeFiles/lfm_node.dir/src/lfm.cpp.o: /home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetectionArray.h
 lfm/CMakeFiles/lfm_node.dir/src/lfm.cpp.o: /home/et/Documents/lfm_ws/devel/include/swiftpro/SwiftproState.h
 lfm/CMakeFiles/lfm_node.dir/src/lfm.cpp.o: /home/et/Documents/lfm_ws/devel/include/swiftpro/position.h
+lfm/CMakeFiles/lfm_node.dir/src/lfm.cpp.o: /home/et/Documents/lfm_ws/devel/include/swiftpro/status.h
 lfm/CMakeFiles/lfm_node.dir/src/lfm.cpp.o: /home/et/Documents/lfm_ws/src/image_common/image_transport/include/image_transport/camera_publisher.h
 lfm/CMakeFiles/lfm_node.dir/src/lfm.cpp.o: /home/et/Documents/lfm_ws/src/image_common/image_transport/include/image_transport/camera_subscriber.h
 lfm/CMakeFiles/lfm_node.dir/src/lfm.cpp.o: /home/et/Documents/lfm_ws/src/image_common/image_transport/include/image_transport/exception.h

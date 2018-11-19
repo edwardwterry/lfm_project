@@ -5,9 +5,9 @@ class Controller {
     public:
         void run();
         // void remove_background(rs2::video_frame& other, const rs2::depth_frame& depth_frame, float depth_scale);//, float clipping_dist);
-        // float get_depth_scale(rs2::device dev);
-        // rs2_stream find_stream_to_align(const std::vector<rs2::stream_profile>& streams);
-        // bool profile_changed(const std::vector<rs2::stream_profile>& current, const std::vector<rs2::stream_profile>& prev);
+        float get_depth_scale(rs2::device dev);
+        rs2_stream find_stream_to_align(const std::vector<rs2::stream_profile>& streams);
+        bool profile_changed(const std::vector<rs2::stream_profile>& current, const std::vector<rs2::stream_profile>& prev);
         std::map<int, Eigen::Vector3f> generateTagsInArmCoords();
         // void processTagCentersClbk(const std_msgs::Float32MultiArray& msg);
         void processTag3dCentersClbk(const lfm::AprilTagDetectionArray& msg);
@@ -36,10 +36,11 @@ class Controller {
         // ros::Subscriber tag_centers_sub = n.subscribe("/apriltags2_ros_continuous_node/tag_pixel_centers", 1000, &Controller::processTagCentersClbk, this);
         ros::Subscriber tag_centers_3d_sub = n.subscribe("/tag_detections", 1000, &Controller::processTag3dCentersClbk, this);
         // ros::Subscriber pick_tag_sub = n.subscribe("/pick_tag", 1, &Controller::pickTagClbk, this);
-	    ros::Subscriber status_sub = n.subscribe("SwiftproState_topic", 1, &Controller::statusClbk, this);
+	    ros::Subscriber status_sub = n.subscribe("/SwiftproState_topic", 1, &Controller::statusClbk, this);
+	    ros::Subscriber action_sub = n.subscribe("/action_request", 1, &Controller::processActionClbk, this);
 
         ros::Publisher arm_pos_cmd_pub = n.advertise<swiftpro::position>("/position_write_topic", 1);
-        ros::Publisher pump_pub = n.advertise<swiftpro::position>("/pump_topic", 1);
+        ros::Publisher pump_pub = n.advertise<swiftpro::status>("/pump_topic", 1);
         std::map<int, Eigen::Vector2f> tag_centers_pix_cam;
         std::map<int, Eigen::Vector3f> tag_centers_3d_cam;
         std::map<int, Eigen::Vector3f> tag_centers_3d_arm;
@@ -54,15 +55,15 @@ class Controller {
         std::vector<Eigen::Vector3f> arm_pos_sequence;
 
         float pos_error_tolerance = 1.0; // mm
-        float standoff_height = 10.0; // mm
-        float clear_height = 150.0; // mm
-        float pick_height = 0.0; // mm
+        float standoff_height = 20.0; // mm
+        float clear_height = 100.0; // mm
+        float pick_height = 2.0; // mm
 
         Eigen::Vector3f home_pos = Eigen::Vector3f(10.0, 150.0, 100.0);
 
-        std::vector<float> R_limits {80.0, 200.0};
-        std::vector<float> th_limits {-90.0, 90.0};
-        std::vector<float> z_limits {-1.0, 150.0};
+        std::vector<float> R_limits {100.0, 260.0};
+        std::vector<float> th_limits {-45.0, 45.0};
+        std::vector<float> z_limits {-1.0, 160.0};
         
         enum ArmState{
             IDLE = -1,
@@ -147,9 +148,9 @@ std::map<int, Eigen::Vector3f> Controller::generateTagsInArmCoords(){
 
 void Controller::run(){
     rs2::pipeline_profile profile = pipe.start();
-    // float depth_scale = get_depth_scale(profile.get_device());
-    // rs2_stream align_to = find_stream_to_align(profile.get_streams());
-    // rs2::align align(align_to);
+    float depth_scale = get_depth_scale(profile.get_device());
+    rs2_stream align_to = find_stream_to_align(profile.get_streams());
+    rs2::align align(align_to);
     // ros::Publisher depth_pub = n.advertise<std_msgs::Float32>("depth", 1000);
     image_transport::ImageTransport it(n);
     image_transport::Publisher image_pub = it.advertise("/camera/image_raw", 1);
@@ -159,31 +160,32 @@ void Controller::run(){
     tag_centers_3d_arm = generateTagsInArmCoords();
 
     bool extrinsics_calculated = false;
+    ROS_INFO("Are all tags out of the scene?");
 
     while(ros::ok()){
         // std::cout<<"running!"<<std::endl;
         rs2::frameset frameset = pipe.wait_for_frames();
-        // if (profile_changed(pipe.get_active_profile().get_streams(), profile.get_streams()))
-        // {
-        //     //If the profile was changed, update the align object, and also get the new device's depth scale
-        //     profile = pipe.get_active_profile();
-        //     align_to = find_stream_to_align(profile.get_streams());
-        //     align = rs2::align(align_to);
-        //     depth_scale = get_depth_scale(profile.get_device());
-        // }
+        if (profile_changed(pipe.get_active_profile().get_streams(), profile.get_streams()))
+        {
+            //If the profile was changed, update the align object, and also get the new device's depth scale
+            profile = pipe.get_active_profile();
+            align_to = find_stream_to_align(profile.get_streams());
+            align = rs2::align(align_to);
+            depth_scale = get_depth_scale(profile.get_device());
+        }
 
-        // //Get processed aligned frame
-        // auto processed = align.process(frameset);
+        //Get processed aligned frame
+        auto processed = align.process(frameset);
 
-        // // Trying to get both other and aligned depth frames
-        // rs2::video_frame other_frame = processed.first(align_to);
-        // rs2::depth_frame aligned_depth_frame = processed.get_depth_frame();
+        // Trying to get both other and aligned depth frames
+        rs2::video_frame other_frame = processed.first(align_to);
+        rs2::depth_frame aligned_depth_frame = processed.get_depth_frame();
 
-        // //If one of them is unavailable, continue iteration
-        // if (!aligned_depth_frame || !other_frame)
-        // {
-        //     continue;
-        // }
+        //If one of them is unavailable, continue iteration
+        if (!aligned_depth_frame || !other_frame)
+        {
+            continue;
+        }
         // Passing both frames to remove_background so it will "strip" the background
         // NOTE: in this example, we alter the buffer of the other frame, instead of copying it and altering the copy
         //       This behavior is not recommended in real application since the other frame could be used elsewhere
@@ -191,9 +193,9 @@ void Controller::run(){
         // const int w = other_frame.as<rs2::video_frame>().get_width();
         // const int h = other_frame.as<rs2::video_frame>().get_height();
         // cv::Mat image(cv::Size(w, h), CV_8UC3, (void*)other_frame.get_data(), cv::Mat::AUTO_STEP);
-        const int w = frameset.as<rs2::video_frame>().get_width();
-        const int h = frameset.as<rs2::video_frame>().get_height();
-        cv::Mat image(cv::Size(w, h), CV_8UC3, (void*)frameset.get_data(), cv::Mat::AUTO_STEP);
+        const int w = other_frame.as<rs2::video_frame>().get_width();
+        const int h = other_frame.as<rs2::video_frame>().get_height();
+        cv::Mat image(cv::Size(w, h), CV_8UC3, (void*)other_frame.get_data(), cv::Mat::AUTO_STEP);
         sensor_msgs::ImagePtr msg = cv_bridge::CvImage(std_msgs::Header(), 
                                                        sensor_msgs::image_encodings::RGB8, 
                                                        image).toImageMsg();
@@ -310,10 +312,10 @@ void Controller::sendPosCmd(){
 }
 
 void Controller::sendPumpCmd(){
-    std_msgs::Bool msg;
+    swiftpro::status msg;
     if (arm_state == ArmState::PICK){
-        msg.data = true;
-    } else msg.data = false;
+        msg.status = 1;
+    } else msg.status = 0;
     pump_pub.publish(msg);
 }
 
@@ -359,6 +361,7 @@ void Controller::processActionClbk(const lfm::Action& msg){
     pick = hover_start;
     pick[2] = pick_height;
     release = Controller::calcReleaseCoords(tag_id, msg.dist, msg.angle); // msg.dist must be in mm!
+    release[2] = pick_height;
     hover_end = release;
     hover_end[2] = standoff_height;
     clear = hover_end;
@@ -392,6 +395,8 @@ Eigen::Vector3f Controller::calcReleaseCoords(const int& tag_id, const float& di
     end[0] = start[0] + dx;
     end[1] = start[1] + dy;
     end[2] = start[2];
+    std::cout<<"Start: "<<start<<std::endl;
+    std::cout<<"End: "<<end<<std::endl;
     return end;
 }
 
@@ -482,6 +487,102 @@ bool Controller::calculateExtrinsics(const std::map<int, Eigen::Vector3f>& cam,
         return true;
     } else return false;
 
+}
+
+float Controller::get_depth_scale(rs2::device dev)
+{
+    // Go over the device's sensors
+    for (rs2::sensor& sensor : dev.query_sensors())
+    {
+        // Check if the sensor if a depth sensor
+        if (rs2::depth_sensor dpt = sensor.as<rs2::depth_sensor>())
+        {
+            return dpt.get_depth_scale();
+        }
+    }
+    throw std::runtime_error("Device does not have a depth sensor");
+}
+
+// void Controller::remove_background(rs2::video_frame& other_frame, const rs2::depth_frame& depth_frame, float depth_scale)//, float clipping_dist)
+// {
+//     const uint16_t* p_depth_frame = reinterpret_cast<const uint16_t*>(depth_frame.get_data());
+//     uint8_t* p_other_frame = reinterpret_cast<uint8_t*>(const_cast<void*>(other_frame.get_data()));
+
+//     int width = other_frame.get_width();
+//     int height = other_frame.get_height();
+//     int other_bpp = other_frame.get_bytes_per_pixel();
+
+//     #pragma omp parallel for schedule(dynamic) //Using OpenMP to try to parallelise the loop
+//     for (int y = 0; y < height; y++)
+//     {
+//         auto depth_pixel_index = y * width;
+//         for (int x = 0; x < width; x++, ++depth_pixel_index)
+//         {
+//             // Get the depth value of the current pixel
+//             auto pixels_distance = depth_scale * p_depth_frame[depth_pixel_index];
+//             // std::cout<<"x: "<<x<<" y: "<<y<<" "<<pixels_distance<<std::endl;
+//             // Check if the depth value is invalid (<=0) or greater than the threashold
+//             // if (pixels_distance <= 0.f)// || pixels_distance > clipping_dist)
+//             // {
+//                 // Calculate the offset in other frame's buffer to current pixel
+//                 auto offset = depth_pixel_index * other_bpp;
+
+//                 // Set pixel to "background" color (0x999999)
+//                 // std::memset(&p_other_frame[offset], 0x99, other_bpp);
+//                 std::memset(&p_other_frame[offset], pixels_distance * 100.0f, other_bpp);
+//             // }
+//         }
+//     }
+// }
+
+rs2_stream Controller::find_stream_to_align(const std::vector<rs2::stream_profile>& streams)
+{
+    //Given a vector of streams, we try to find a depth stream and another stream to align depth with.
+    //We prioritize color streams to make the view look better.
+    //If color is not available, we take another stream that (other than depth)
+    rs2_stream align_to = RS2_STREAM_ANY;
+    bool depth_stream_found = false;
+    bool color_stream_found = false;
+    for (rs2::stream_profile sp : streams)
+    {
+        rs2_stream profile_stream = sp.stream_type();
+        if (profile_stream != RS2_STREAM_DEPTH)
+        {
+            if (!color_stream_found)         //Prefer color
+                align_to = profile_stream;
+
+            if (profile_stream == RS2_STREAM_COLOR)
+            {
+                color_stream_found = true;
+            }
+        }
+        else
+        {
+            depth_stream_found = true;
+        }
+    }
+
+    if(!depth_stream_found)
+        throw std::runtime_error("No Depth stream available");
+
+    if (align_to == RS2_STREAM_ANY)
+        throw std::runtime_error("No stream found to align with Depth");
+
+    return align_to;
+}
+
+bool Controller::profile_changed(const std::vector<rs2::stream_profile>& current, const std::vector<rs2::stream_profile>& prev)
+{
+    for (auto&& sp : prev)
+    {
+        //If previous profile is in current (maybe just added another)
+        auto itr = std::find_if(std::begin(current), std::end(current), [&sp](const rs2::stream_profile& current_sp) { return sp.unique_id() == current_sp.unique_id(); });
+        if (itr == std::end(current)) //If it previous stream wasn't found in current
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 int main (int argc, char **argv)

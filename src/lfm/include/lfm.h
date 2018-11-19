@@ -18,6 +18,7 @@
 #include <eigen3/Eigen/Dense>
 #include <swiftpro/position.h>
 #include <swiftpro/SwiftproState.h>
+#include <swiftpro/status.h>
 
 
 #include <lfm/AprilTagDetection.h>

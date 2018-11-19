@@ -8,6 +8,8 @@
         "system_error": "cpp",
         "core": "cpp",
         "cmath": "cpp",
-        "complex": "cpp"
+        "complex": "cpp",
+        "array": "cpp",
+        "ostream": "cpp"
     }
 }

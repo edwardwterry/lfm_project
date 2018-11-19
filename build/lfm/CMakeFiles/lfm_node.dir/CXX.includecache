@@ -92,6 +92,22 @@ ros/builtin_message_traits.h
 ros/message_operations.h
 -
 
+/home/et/Documents/lfm_ws/devel/include/swiftpro/status.h
+string
+-
+vector
+-
+map
+-
+ros/types.h
+-
+ros/serialization.h
+-
+ros/builtin_message_traits.h
+-
+ros/message_operations.h
+-
+
 /home/et/Documents/lfm_ws/src/image_common/image_transport/include/image_transport/camera_publisher.h
 ros/ros.h
 -
@@ -202,6 +218,8 @@ eigen3/Eigen/Dense
 swiftpro/position.h
 -
 swiftpro/SwiftproState.h
+-
+swiftpro/status.h
 -
 lfm/AprilTagDetection.h
 -

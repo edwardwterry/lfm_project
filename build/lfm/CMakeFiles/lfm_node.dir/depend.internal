@@ -7,6 +7,7 @@ lfm/CMakeFiles/lfm_node.dir/src/lfm.cpp.o
  /home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetectionArray.h
  /home/et/Documents/lfm_ws/devel/include/swiftpro/SwiftproState.h
  /home/et/Documents/lfm_ws/devel/include/swiftpro/position.h
+ /home/et/Documents/lfm_ws/devel/include/swiftpro/status.h
  /home/et/Documents/lfm_ws/src/image_common/image_transport/include/image_transport/camera_publisher.h
  /home/et/Documents/lfm_ws/src/image_common/image_transport/include/image_transport/camera_subscriber.h
  /home/et/Documents/lfm_ws/src/image_common/image_transport/include/image_transport/exception.h
