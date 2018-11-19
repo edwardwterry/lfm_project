@@ -1,6 +1,6 @@
 # generated from genmsg/cmake/pkg-genmsg.cmake.em
 
-message(STATUS "lfm: 2 messages, 0 services")
+message(STATUS "lfm: 6 messages, 0 services")
 
 set(MSG_I_FLAGS "-Ilfm:/home/et/Documents/lfm_ws/src/lfm/msg;-Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg;-Igeometry_msgs:/opt/ros/kinetic/share/geometry_msgs/cmake/../msg;-Isensor_msgs:/opt/ros/kinetic/share/sensor_msgs/cmake/../msg")
 
@@ -17,14 +17,34 @@ add_custom_target(lfm_generate_messages ALL)
 
 
 
-get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg" NAME_WE)
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/State.msg" NAME_WE)
 add_custom_target(_lfm_generate_messages_check_deps_${_filename}
-  COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "lfm" "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg" "std_msgs/Header:geometry_msgs/Quaternion:geometry_msgs/Point:geometry_msgs/PoseWithCovariance:geometry_msgs/PoseWithCovarianceStamped:geometry_msgs/Pose"
+  COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "lfm" "/home/et/Documents/lfm_ws/src/lfm/msg/State.msg" "lfm/Block:std_msgs/Header"
+)
+
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/Links.msg" NAME_WE)
+add_custom_target(_lfm_generate_messages_check_deps_${_filename}
+  COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "lfm" "/home/et/Documents/lfm_ws/src/lfm/msg/Links.msg" ""
+)
+
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/Action.msg" NAME_WE)
+add_custom_target(_lfm_generate_messages_check_deps_${_filename}
+  COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "lfm" "/home/et/Documents/lfm_ws/src/lfm/msg/Action.msg" ""
 )
 
 get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetectionArray.msg" NAME_WE)
 add_custom_target(_lfm_generate_messages_check_deps_${_filename}
   COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "lfm" "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetectionArray.msg" "std_msgs/Header:geometry_msgs/Quaternion:lfm/AprilTagDetection:geometry_msgs/Point:geometry_msgs/PoseWithCovariance:geometry_msgs/PoseWithCovarianceStamped:geometry_msgs/Pose"
+)
+
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg" NAME_WE)
+add_custom_target(_lfm_generate_messages_check_deps_${_filename}
+  COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "lfm" "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg" "std_msgs/Header:geometry_msgs/Quaternion:geometry_msgs/Point:geometry_msgs/PoseWithCovariance:geometry_msgs/PoseWithCovarianceStamped:geometry_msgs/Pose"
+)
+
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/Block.msg" NAME_WE)
+add_custom_target(_lfm_generate_messages_check_deps_${_filename}
+  COMMAND ${CATKIN_ENV} ${PYTHON_EXECUTABLE} ${GENMSG_CHECK_DEPS_SCRIPT} "lfm" "/home/et/Documents/lfm_ws/src/lfm/msg/Block.msg" ""
 )
 
 #
@@ -34,15 +54,39 @@ add_custom_target(_lfm_generate_messages_check_deps_${_filename}
 ### Section generating for lang: gencpp
 ### Generating Messages
 _generate_msg_cpp(lfm
-  "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg"
+  "/home/et/Documents/lfm_ws/src/lfm/msg/State.msg"
   "${MSG_I_FLAGS}"
-  "/opt/ros/kinetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Quaternion.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovariance.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovarianceStamped.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Pose.msg"
+  "/home/et/Documents/lfm_ws/src/lfm/msg/Block.msg;/opt/ros/kinetic/share/std_msgs/cmake/../msg/Header.msg"
+  ${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/lfm
+)
+_generate_msg_cpp(lfm
+  "/home/et/Documents/lfm_ws/src/lfm/msg/Links.msg"
+  "${MSG_I_FLAGS}"
+  ""
+  ${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/lfm
+)
+_generate_msg_cpp(lfm
+  "/home/et/Documents/lfm_ws/src/lfm/msg/Action.msg"
+  "${MSG_I_FLAGS}"
+  ""
   ${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/lfm
 )
 _generate_msg_cpp(lfm
   "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetectionArray.msg"
   "${MSG_I_FLAGS}"
   "/opt/ros/kinetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Quaternion.msg;/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovariance.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovarianceStamped.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Pose.msg"
+  ${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/lfm
+)
+_generate_msg_cpp(lfm
+  "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg"
+  "${MSG_I_FLAGS}"
+  "/opt/ros/kinetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Quaternion.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovariance.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovarianceStamped.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Pose.msg"
+  ${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/lfm
+)
+_generate_msg_cpp(lfm
+  "/home/et/Documents/lfm_ws/src/lfm/msg/Block.msg"
+  "${MSG_I_FLAGS}"
+  ""
   ${CATKIN_DEVEL_PREFIX}/${gencpp_INSTALL_DIR}/lfm
 )
 
@@ -60,9 +104,17 @@ add_custom_target(lfm_generate_messages_cpp
 add_dependencies(lfm_generate_messages lfm_generate_messages_cpp)
 
 # add dependencies to all check dependencies targets
-get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg" NAME_WE)
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/State.msg" NAME_WE)
+add_dependencies(lfm_generate_messages_cpp _lfm_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/Links.msg" NAME_WE)
+add_dependencies(lfm_generate_messages_cpp _lfm_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/Action.msg" NAME_WE)
 add_dependencies(lfm_generate_messages_cpp _lfm_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetectionArray.msg" NAME_WE)
+add_dependencies(lfm_generate_messages_cpp _lfm_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg" NAME_WE)
+add_dependencies(lfm_generate_messages_cpp _lfm_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/Block.msg" NAME_WE)
 add_dependencies(lfm_generate_messages_cpp _lfm_generate_messages_check_deps_${_filename})
 
 # target for backward compatibility
@@ -75,15 +127,39 @@ list(APPEND ${PROJECT_NAME}_EXPORTED_TARGETS lfm_generate_messages_cpp)
 ### Section generating for lang: geneus
 ### Generating Messages
 _generate_msg_eus(lfm
-  "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg"
+  "/home/et/Documents/lfm_ws/src/lfm/msg/State.msg"
   "${MSG_I_FLAGS}"
-  "/opt/ros/kinetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Quaternion.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovariance.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovarianceStamped.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Pose.msg"
+  "/home/et/Documents/lfm_ws/src/lfm/msg/Block.msg;/opt/ros/kinetic/share/std_msgs/cmake/../msg/Header.msg"
+  ${CATKIN_DEVEL_PREFIX}/${geneus_INSTALL_DIR}/lfm
+)
+_generate_msg_eus(lfm
+  "/home/et/Documents/lfm_ws/src/lfm/msg/Links.msg"
+  "${MSG_I_FLAGS}"
+  ""
+  ${CATKIN_DEVEL_PREFIX}/${geneus_INSTALL_DIR}/lfm
+)
+_generate_msg_eus(lfm
+  "/home/et/Documents/lfm_ws/src/lfm/msg/Action.msg"
+  "${MSG_I_FLAGS}"
+  ""
   ${CATKIN_DEVEL_PREFIX}/${geneus_INSTALL_DIR}/lfm
 )
 _generate_msg_eus(lfm
   "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetectionArray.msg"
   "${MSG_I_FLAGS}"
   "/opt/ros/kinetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Quaternion.msg;/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovariance.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovarianceStamped.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Pose.msg"
+  ${CATKIN_DEVEL_PREFIX}/${geneus_INSTALL_DIR}/lfm
+)
+_generate_msg_eus(lfm
+  "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg"
+  "${MSG_I_FLAGS}"
+  "/opt/ros/kinetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Quaternion.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovariance.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovarianceStamped.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Pose.msg"
+  ${CATKIN_DEVEL_PREFIX}/${geneus_INSTALL_DIR}/lfm
+)
+_generate_msg_eus(lfm
+  "/home/et/Documents/lfm_ws/src/lfm/msg/Block.msg"
+  "${MSG_I_FLAGS}"
+  ""
   ${CATKIN_DEVEL_PREFIX}/${geneus_INSTALL_DIR}/lfm
 )
 
@@ -101,9 +177,17 @@ add_custom_target(lfm_generate_messages_eus
 add_dependencies(lfm_generate_messages lfm_generate_messages_eus)
 
 # add dependencies to all check dependencies targets
-get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg" NAME_WE)
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/State.msg" NAME_WE)
+add_dependencies(lfm_generate_messages_eus _lfm_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/Links.msg" NAME_WE)
+add_dependencies(lfm_generate_messages_eus _lfm_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/Action.msg" NAME_WE)
 add_dependencies(lfm_generate_messages_eus _lfm_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetectionArray.msg" NAME_WE)
+add_dependencies(lfm_generate_messages_eus _lfm_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg" NAME_WE)
+add_dependencies(lfm_generate_messages_eus _lfm_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/Block.msg" NAME_WE)
 add_dependencies(lfm_generate_messages_eus _lfm_generate_messages_check_deps_${_filename})
 
 # target for backward compatibility
@@ -116,15 +200,39 @@ list(APPEND ${PROJECT_NAME}_EXPORTED_TARGETS lfm_generate_messages_eus)
 ### Section generating for lang: genlisp
 ### Generating Messages
 _generate_msg_lisp(lfm
-  "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg"
+  "/home/et/Documents/lfm_ws/src/lfm/msg/State.msg"
   "${MSG_I_FLAGS}"
-  "/opt/ros/kinetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Quaternion.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovariance.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovarianceStamped.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Pose.msg"
+  "/home/et/Documents/lfm_ws/src/lfm/msg/Block.msg;/opt/ros/kinetic/share/std_msgs/cmake/../msg/Header.msg"
+  ${CATKIN_DEVEL_PREFIX}/${genlisp_INSTALL_DIR}/lfm
+)
+_generate_msg_lisp(lfm
+  "/home/et/Documents/lfm_ws/src/lfm/msg/Links.msg"
+  "${MSG_I_FLAGS}"
+  ""
+  ${CATKIN_DEVEL_PREFIX}/${genlisp_INSTALL_DIR}/lfm
+)
+_generate_msg_lisp(lfm
+  "/home/et/Documents/lfm_ws/src/lfm/msg/Action.msg"
+  "${MSG_I_FLAGS}"
+  ""
   ${CATKIN_DEVEL_PREFIX}/${genlisp_INSTALL_DIR}/lfm
 )
 _generate_msg_lisp(lfm
   "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetectionArray.msg"
   "${MSG_I_FLAGS}"
   "/opt/ros/kinetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Quaternion.msg;/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovariance.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovarianceStamped.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Pose.msg"
+  ${CATKIN_DEVEL_PREFIX}/${genlisp_INSTALL_DIR}/lfm
+)
+_generate_msg_lisp(lfm
+  "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg"
+  "${MSG_I_FLAGS}"
+  "/opt/ros/kinetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Quaternion.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovariance.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovarianceStamped.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Pose.msg"
+  ${CATKIN_DEVEL_PREFIX}/${genlisp_INSTALL_DIR}/lfm
+)
+_generate_msg_lisp(lfm
+  "/home/et/Documents/lfm_ws/src/lfm/msg/Block.msg"
+  "${MSG_I_FLAGS}"
+  ""
   ${CATKIN_DEVEL_PREFIX}/${genlisp_INSTALL_DIR}/lfm
 )
 
@@ -142,9 +250,17 @@ add_custom_target(lfm_generate_messages_lisp
 add_dependencies(lfm_generate_messages lfm_generate_messages_lisp)
 
 # add dependencies to all check dependencies targets
-get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg" NAME_WE)
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/State.msg" NAME_WE)
+add_dependencies(lfm_generate_messages_lisp _lfm_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/Links.msg" NAME_WE)
+add_dependencies(lfm_generate_messages_lisp _lfm_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/Action.msg" NAME_WE)
 add_dependencies(lfm_generate_messages_lisp _lfm_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetectionArray.msg" NAME_WE)
+add_dependencies(lfm_generate_messages_lisp _lfm_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg" NAME_WE)
+add_dependencies(lfm_generate_messages_lisp _lfm_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/Block.msg" NAME_WE)
 add_dependencies(lfm_generate_messages_lisp _lfm_generate_messages_check_deps_${_filename})
 
 # target for backward compatibility
@@ -157,15 +273,39 @@ list(APPEND ${PROJECT_NAME}_EXPORTED_TARGETS lfm_generate_messages_lisp)
 ### Section generating for lang: gennodejs
 ### Generating Messages
 _generate_msg_nodejs(lfm
-  "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg"
+  "/home/et/Documents/lfm_ws/src/lfm/msg/State.msg"
   "${MSG_I_FLAGS}"
-  "/opt/ros/kinetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Quaternion.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovariance.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovarianceStamped.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Pose.msg"
+  "/home/et/Documents/lfm_ws/src/lfm/msg/Block.msg;/opt/ros/kinetic/share/std_msgs/cmake/../msg/Header.msg"
+  ${CATKIN_DEVEL_PREFIX}/${gennodejs_INSTALL_DIR}/lfm
+)
+_generate_msg_nodejs(lfm
+  "/home/et/Documents/lfm_ws/src/lfm/msg/Links.msg"
+  "${MSG_I_FLAGS}"
+  ""
+  ${CATKIN_DEVEL_PREFIX}/${gennodejs_INSTALL_DIR}/lfm
+)
+_generate_msg_nodejs(lfm
+  "/home/et/Documents/lfm_ws/src/lfm/msg/Action.msg"
+  "${MSG_I_FLAGS}"
+  ""
   ${CATKIN_DEVEL_PREFIX}/${gennodejs_INSTALL_DIR}/lfm
 )
 _generate_msg_nodejs(lfm
   "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetectionArray.msg"
   "${MSG_I_FLAGS}"
   "/opt/ros/kinetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Quaternion.msg;/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovariance.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovarianceStamped.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Pose.msg"
+  ${CATKIN_DEVEL_PREFIX}/${gennodejs_INSTALL_DIR}/lfm
+)
+_generate_msg_nodejs(lfm
+  "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg"
+  "${MSG_I_FLAGS}"
+  "/opt/ros/kinetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Quaternion.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovariance.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovarianceStamped.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Pose.msg"
+  ${CATKIN_DEVEL_PREFIX}/${gennodejs_INSTALL_DIR}/lfm
+)
+_generate_msg_nodejs(lfm
+  "/home/et/Documents/lfm_ws/src/lfm/msg/Block.msg"
+  "${MSG_I_FLAGS}"
+  ""
   ${CATKIN_DEVEL_PREFIX}/${gennodejs_INSTALL_DIR}/lfm
 )
 
@@ -183,9 +323,17 @@ add_custom_target(lfm_generate_messages_nodejs
 add_dependencies(lfm_generate_messages lfm_generate_messages_nodejs)
 
 # add dependencies to all check dependencies targets
-get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg" NAME_WE)
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/State.msg" NAME_WE)
+add_dependencies(lfm_generate_messages_nodejs _lfm_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/Links.msg" NAME_WE)
+add_dependencies(lfm_generate_messages_nodejs _lfm_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/Action.msg" NAME_WE)
 add_dependencies(lfm_generate_messages_nodejs _lfm_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetectionArray.msg" NAME_WE)
+add_dependencies(lfm_generate_messages_nodejs _lfm_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg" NAME_WE)
+add_dependencies(lfm_generate_messages_nodejs _lfm_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/Block.msg" NAME_WE)
 add_dependencies(lfm_generate_messages_nodejs _lfm_generate_messages_check_deps_${_filename})
 
 # target for backward compatibility
@@ -198,15 +346,39 @@ list(APPEND ${PROJECT_NAME}_EXPORTED_TARGETS lfm_generate_messages_nodejs)
 ### Section generating for lang: genpy
 ### Generating Messages
 _generate_msg_py(lfm
-  "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg"
+  "/home/et/Documents/lfm_ws/src/lfm/msg/State.msg"
   "${MSG_I_FLAGS}"
-  "/opt/ros/kinetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Quaternion.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovariance.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovarianceStamped.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Pose.msg"
+  "/home/et/Documents/lfm_ws/src/lfm/msg/Block.msg;/opt/ros/kinetic/share/std_msgs/cmake/../msg/Header.msg"
+  ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/lfm
+)
+_generate_msg_py(lfm
+  "/home/et/Documents/lfm_ws/src/lfm/msg/Links.msg"
+  "${MSG_I_FLAGS}"
+  ""
+  ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/lfm
+)
+_generate_msg_py(lfm
+  "/home/et/Documents/lfm_ws/src/lfm/msg/Action.msg"
+  "${MSG_I_FLAGS}"
+  ""
   ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/lfm
 )
 _generate_msg_py(lfm
   "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetectionArray.msg"
   "${MSG_I_FLAGS}"
   "/opt/ros/kinetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Quaternion.msg;/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovariance.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovarianceStamped.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Pose.msg"
+  ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/lfm
+)
+_generate_msg_py(lfm
+  "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg"
+  "${MSG_I_FLAGS}"
+  "/opt/ros/kinetic/share/std_msgs/cmake/../msg/Header.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Quaternion.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Point.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovariance.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/PoseWithCovarianceStamped.msg;/opt/ros/kinetic/share/geometry_msgs/cmake/../msg/Pose.msg"
+  ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/lfm
+)
+_generate_msg_py(lfm
+  "/home/et/Documents/lfm_ws/src/lfm/msg/Block.msg"
+  "${MSG_I_FLAGS}"
+  ""
   ${CATKIN_DEVEL_PREFIX}/${genpy_INSTALL_DIR}/lfm
 )
 
@@ -224,9 +396,17 @@ add_custom_target(lfm_generate_messages_py
 add_dependencies(lfm_generate_messages lfm_generate_messages_py)
 
 # add dependencies to all check dependencies targets
-get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg" NAME_WE)
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/State.msg" NAME_WE)
+add_dependencies(lfm_generate_messages_py _lfm_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/Links.msg" NAME_WE)
+add_dependencies(lfm_generate_messages_py _lfm_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/Action.msg" NAME_WE)
 add_dependencies(lfm_generate_messages_py _lfm_generate_messages_check_deps_${_filename})
 get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetectionArray.msg" NAME_WE)
+add_dependencies(lfm_generate_messages_py _lfm_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg" NAME_WE)
+add_dependencies(lfm_generate_messages_py _lfm_generate_messages_check_deps_${_filename})
+get_filename_component(_filename "/home/et/Documents/lfm_ws/src/lfm/msg/Block.msg" NAME_WE)
 add_dependencies(lfm_generate_messages_py _lfm_generate_messages_check_deps_${_filename})
 
 # target for backward compatibility

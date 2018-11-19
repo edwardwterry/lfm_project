@@ -126,6 +126,7 @@ if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   include("/home/et/Documents/lfm_ws/build/opencv_apps/cmake_install.cmake")
   include("/home/et/Documents/lfm_ws/build/apriltags2_ros/apriltags2_ros/cmake_install.cmake")
   include("/home/et/Documents/lfm_ws/build/lfm/cmake_install.cmake")
+  include("/home/et/Documents/lfm_ws/build/swiftpro/cmake_install.cmake")
   include("/home/et/Documents/lfm_ws/build/usb_cam/cmake_install.cmake")
 
 endif()

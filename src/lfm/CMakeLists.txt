@@ -63,6 +63,10 @@ add_message_files(
    FILES
    AprilTagDetection.msg
    AprilTagDetectionArray.msg
+   Block.msg
+   Links.msg
+   State.msg
+   Action.msg
  )
 
 ## Generate services in the 'srv' folder

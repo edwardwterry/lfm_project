@@ -53,20 +53,30 @@ CMAKE_BINARY_DIR = /home/et/Documents/lfm_ws/build
 # Include the progress variables for this target.
 include lfm/CMakeFiles/lfm_generate_messages_nodejs.dir/progress.make
 
-lfm/CMakeFiles/lfm_generate_messages_nodejs: /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetection.js
+lfm/CMakeFiles/lfm_generate_messages_nodejs: /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/State.js
+lfm/CMakeFiles/lfm_generate_messages_nodejs: /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/Links.js
+lfm/CMakeFiles/lfm_generate_messages_nodejs: /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/Action.js
 lfm/CMakeFiles/lfm_generate_messages_nodejs: /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetectionArray.js
+lfm/CMakeFiles/lfm_generate_messages_nodejs: /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetection.js
+lfm/CMakeFiles/lfm_generate_messages_nodejs: /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/Block.js
 
 
-/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetection.js: /opt/ros/kinetic/lib/gennodejs/gen_nodejs.py
-/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetection.js: /home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg
-/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetection.js: /opt/ros/kinetic/share/std_msgs/msg/Header.msg
-/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetection.js: /opt/ros/kinetic/share/geometry_msgs/msg/Quaternion.msg
-/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetection.js: /opt/ros/kinetic/share/geometry_msgs/msg/Point.msg
-/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetection.js: /opt/ros/kinetic/share/geometry_msgs/msg/PoseWithCovariance.msg
-/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetection.js: /opt/ros/kinetic/share/geometry_msgs/msg/PoseWithCovarianceStamped.msg
-/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetection.js: /opt/ros/kinetic/share/geometry_msgs/msg/Pose.msg
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/et/Documents/lfm_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating Javascript code from lfm/AprilTagDetection.msg"
-	cd /home/et/Documents/lfm_ws/build/lfm && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg -Ilfm:/home/et/Documents/lfm_ws/src/lfm/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -Igeometry_msgs:/opt/ros/kinetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/kinetic/share/sensor_msgs/cmake/../msg -p lfm -o /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg
+/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/State.js: /opt/ros/kinetic/lib/gennodejs/gen_nodejs.py
+/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/State.js: /home/et/Documents/lfm_ws/src/lfm/msg/State.msg
+/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/State.js: /home/et/Documents/lfm_ws/src/lfm/msg/Block.msg
+/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/State.js: /opt/ros/kinetic/share/std_msgs/msg/Header.msg
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/et/Documents/lfm_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating Javascript code from lfm/State.msg"
+	cd /home/et/Documents/lfm_ws/build/lfm && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/et/Documents/lfm_ws/src/lfm/msg/State.msg -Ilfm:/home/et/Documents/lfm_ws/src/lfm/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -Igeometry_msgs:/opt/ros/kinetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/kinetic/share/sensor_msgs/cmake/../msg -p lfm -o /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg
+
+/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/Links.js: /opt/ros/kinetic/lib/gennodejs/gen_nodejs.py
+/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/Links.js: /home/et/Documents/lfm_ws/src/lfm/msg/Links.msg
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/et/Documents/lfm_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating Javascript code from lfm/Links.msg"
+	cd /home/et/Documents/lfm_ws/build/lfm && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/et/Documents/lfm_ws/src/lfm/msg/Links.msg -Ilfm:/home/et/Documents/lfm_ws/src/lfm/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -Igeometry_msgs:/opt/ros/kinetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/kinetic/share/sensor_msgs/cmake/../msg -p lfm -o /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg
+
+/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/Action.js: /opt/ros/kinetic/lib/gennodejs/gen_nodejs.py
+/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/Action.js: /home/et/Documents/lfm_ws/src/lfm/msg/Action.msg
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/et/Documents/lfm_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Generating Javascript code from lfm/Action.msg"
+	cd /home/et/Documents/lfm_ws/build/lfm && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/et/Documents/lfm_ws/src/lfm/msg/Action.msg -Ilfm:/home/et/Documents/lfm_ws/src/lfm/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -Igeometry_msgs:/opt/ros/kinetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/kinetic/share/sensor_msgs/cmake/../msg -p lfm -o /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg
 
 /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetectionArray.js: /opt/ros/kinetic/lib/gennodejs/gen_nodejs.py
 /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetectionArray.js: /home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetectionArray.msg
@@ -77,12 +87,32 @@ lfm/CMakeFiles/lfm_generate_messages_nodejs: /home/et/Documents/lfm_ws/devel/sha
 /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetectionArray.js: /opt/ros/kinetic/share/geometry_msgs/msg/PoseWithCovariance.msg
 /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetectionArray.js: /opt/ros/kinetic/share/geometry_msgs/msg/PoseWithCovarianceStamped.msg
 /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetectionArray.js: /opt/ros/kinetic/share/geometry_msgs/msg/Pose.msg
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/et/Documents/lfm_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating Javascript code from lfm/AprilTagDetectionArray.msg"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/et/Documents/lfm_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Generating Javascript code from lfm/AprilTagDetectionArray.msg"
 	cd /home/et/Documents/lfm_ws/build/lfm && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetectionArray.msg -Ilfm:/home/et/Documents/lfm_ws/src/lfm/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -Igeometry_msgs:/opt/ros/kinetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/kinetic/share/sensor_msgs/cmake/../msg -p lfm -o /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg
 
+/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetection.js: /opt/ros/kinetic/lib/gennodejs/gen_nodejs.py
+/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetection.js: /home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg
+/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetection.js: /opt/ros/kinetic/share/std_msgs/msg/Header.msg
+/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetection.js: /opt/ros/kinetic/share/geometry_msgs/msg/Quaternion.msg
+/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetection.js: /opt/ros/kinetic/share/geometry_msgs/msg/Point.msg
+/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetection.js: /opt/ros/kinetic/share/geometry_msgs/msg/PoseWithCovariance.msg
+/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetection.js: /opt/ros/kinetic/share/geometry_msgs/msg/PoseWithCovarianceStamped.msg
+/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetection.js: /opt/ros/kinetic/share/geometry_msgs/msg/Pose.msg
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/et/Documents/lfm_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Generating Javascript code from lfm/AprilTagDetection.msg"
+	cd /home/et/Documents/lfm_ws/build/lfm && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg -Ilfm:/home/et/Documents/lfm_ws/src/lfm/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -Igeometry_msgs:/opt/ros/kinetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/kinetic/share/sensor_msgs/cmake/../msg -p lfm -o /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg
+
+/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/Block.js: /opt/ros/kinetic/lib/gennodejs/gen_nodejs.py
+/home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/Block.js: /home/et/Documents/lfm_ws/src/lfm/msg/Block.msg
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/et/Documents/lfm_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Generating Javascript code from lfm/Block.msg"
+	cd /home/et/Documents/lfm_ws/build/lfm && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/gennodejs/cmake/../../../lib/gennodejs/gen_nodejs.py /home/et/Documents/lfm_ws/src/lfm/msg/Block.msg -Ilfm:/home/et/Documents/lfm_ws/src/lfm/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -Igeometry_msgs:/opt/ros/kinetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/kinetic/share/sensor_msgs/cmake/../msg -p lfm -o /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg
+
 lfm_generate_messages_nodejs: lfm/CMakeFiles/lfm_generate_messages_nodejs
-lfm_generate_messages_nodejs: /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetection.js
+lfm_generate_messages_nodejs: /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/State.js
+lfm_generate_messages_nodejs: /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/Links.js
+lfm_generate_messages_nodejs: /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/Action.js
 lfm_generate_messages_nodejs: /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetectionArray.js
+lfm_generate_messages_nodejs: /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/AprilTagDetection.js
+lfm_generate_messages_nodejs: /home/et/Documents/lfm_ws/devel/share/gennodejs/ros/lfm/msg/Block.js
 lfm_generate_messages_nodejs: lfm/CMakeFiles/lfm_generate_messages_nodejs.dir/build.make
 
 .PHONY : lfm_generate_messages_nodejs

@@ -53,21 +53,33 @@ CMAKE_BINARY_DIR = /home/et/Documents/lfm_ws/build
 # Include the progress variables for this target.
 include lfm/CMakeFiles/lfm_generate_messages_cpp.dir/progress.make
 
-lfm/CMakeFiles/lfm_generate_messages_cpp: /home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetection.h
+lfm/CMakeFiles/lfm_generate_messages_cpp: /home/et/Documents/lfm_ws/devel/include/lfm/State.h
+lfm/CMakeFiles/lfm_generate_messages_cpp: /home/et/Documents/lfm_ws/devel/include/lfm/Links.h
+lfm/CMakeFiles/lfm_generate_messages_cpp: /home/et/Documents/lfm_ws/devel/include/lfm/Action.h
 lfm/CMakeFiles/lfm_generate_messages_cpp: /home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetectionArray.h
+lfm/CMakeFiles/lfm_generate_messages_cpp: /home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetection.h
+lfm/CMakeFiles/lfm_generate_messages_cpp: /home/et/Documents/lfm_ws/devel/include/lfm/Block.h
 
 
-/home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetection.h: /opt/ros/kinetic/lib/gencpp/gen_cpp.py
-/home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetection.h: /home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg
-/home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetection.h: /opt/ros/kinetic/share/std_msgs/msg/Header.msg
-/home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetection.h: /opt/ros/kinetic/share/geometry_msgs/msg/Quaternion.msg
-/home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetection.h: /opt/ros/kinetic/share/geometry_msgs/msg/Point.msg
-/home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetection.h: /opt/ros/kinetic/share/geometry_msgs/msg/PoseWithCovariance.msg
-/home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetection.h: /opt/ros/kinetic/share/geometry_msgs/msg/PoseWithCovarianceStamped.msg
-/home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetection.h: /opt/ros/kinetic/share/geometry_msgs/msg/Pose.msg
-/home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetection.h: /opt/ros/kinetic/share/gencpp/msg.h.template
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/et/Documents/lfm_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating C++ code from lfm/AprilTagDetection.msg"
-	cd /home/et/Documents/lfm_ws/src/lfm && /home/et/Documents/lfm_ws/build/catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg -Ilfm:/home/et/Documents/lfm_ws/src/lfm/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -Igeometry_msgs:/opt/ros/kinetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/kinetic/share/sensor_msgs/cmake/../msg -p lfm -o /home/et/Documents/lfm_ws/devel/include/lfm -e /opt/ros/kinetic/share/gencpp/cmake/..
+/home/et/Documents/lfm_ws/devel/include/lfm/State.h: /opt/ros/kinetic/lib/gencpp/gen_cpp.py
+/home/et/Documents/lfm_ws/devel/include/lfm/State.h: /home/et/Documents/lfm_ws/src/lfm/msg/State.msg
+/home/et/Documents/lfm_ws/devel/include/lfm/State.h: /home/et/Documents/lfm_ws/src/lfm/msg/Block.msg
+/home/et/Documents/lfm_ws/devel/include/lfm/State.h: /opt/ros/kinetic/share/std_msgs/msg/Header.msg
+/home/et/Documents/lfm_ws/devel/include/lfm/State.h: /opt/ros/kinetic/share/gencpp/msg.h.template
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/et/Documents/lfm_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating C++ code from lfm/State.msg"
+	cd /home/et/Documents/lfm_ws/src/lfm && /home/et/Documents/lfm_ws/build/catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/et/Documents/lfm_ws/src/lfm/msg/State.msg -Ilfm:/home/et/Documents/lfm_ws/src/lfm/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -Igeometry_msgs:/opt/ros/kinetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/kinetic/share/sensor_msgs/cmake/../msg -p lfm -o /home/et/Documents/lfm_ws/devel/include/lfm -e /opt/ros/kinetic/share/gencpp/cmake/..
+
+/home/et/Documents/lfm_ws/devel/include/lfm/Links.h: /opt/ros/kinetic/lib/gencpp/gen_cpp.py
+/home/et/Documents/lfm_ws/devel/include/lfm/Links.h: /home/et/Documents/lfm_ws/src/lfm/msg/Links.msg
+/home/et/Documents/lfm_ws/devel/include/lfm/Links.h: /opt/ros/kinetic/share/gencpp/msg.h.template
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/et/Documents/lfm_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating C++ code from lfm/Links.msg"
+	cd /home/et/Documents/lfm_ws/src/lfm && /home/et/Documents/lfm_ws/build/catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/et/Documents/lfm_ws/src/lfm/msg/Links.msg -Ilfm:/home/et/Documents/lfm_ws/src/lfm/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -Igeometry_msgs:/opt/ros/kinetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/kinetic/share/sensor_msgs/cmake/../msg -p lfm -o /home/et/Documents/lfm_ws/devel/include/lfm -e /opt/ros/kinetic/share/gencpp/cmake/..
+
+/home/et/Documents/lfm_ws/devel/include/lfm/Action.h: /opt/ros/kinetic/lib/gencpp/gen_cpp.py
+/home/et/Documents/lfm_ws/devel/include/lfm/Action.h: /home/et/Documents/lfm_ws/src/lfm/msg/Action.msg
+/home/et/Documents/lfm_ws/devel/include/lfm/Action.h: /opt/ros/kinetic/share/gencpp/msg.h.template
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/et/Documents/lfm_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Generating C++ code from lfm/Action.msg"
+	cd /home/et/Documents/lfm_ws/src/lfm && /home/et/Documents/lfm_ws/build/catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/et/Documents/lfm_ws/src/lfm/msg/Action.msg -Ilfm:/home/et/Documents/lfm_ws/src/lfm/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -Igeometry_msgs:/opt/ros/kinetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/kinetic/share/sensor_msgs/cmake/../msg -p lfm -o /home/et/Documents/lfm_ws/devel/include/lfm -e /opt/ros/kinetic/share/gencpp/cmake/..
 
 /home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetectionArray.h: /opt/ros/kinetic/lib/gencpp/gen_cpp.py
 /home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetectionArray.h: /home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetectionArray.msg
@@ -79,12 +91,34 @@ lfm/CMakeFiles/lfm_generate_messages_cpp: /home/et/Documents/lfm_ws/devel/includ
 /home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetectionArray.h: /opt/ros/kinetic/share/geometry_msgs/msg/PoseWithCovarianceStamped.msg
 /home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetectionArray.h: /opt/ros/kinetic/share/geometry_msgs/msg/Pose.msg
 /home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetectionArray.h: /opt/ros/kinetic/share/gencpp/msg.h.template
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/et/Documents/lfm_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating C++ code from lfm/AprilTagDetectionArray.msg"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/et/Documents/lfm_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Generating C++ code from lfm/AprilTagDetectionArray.msg"
 	cd /home/et/Documents/lfm_ws/src/lfm && /home/et/Documents/lfm_ws/build/catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetectionArray.msg -Ilfm:/home/et/Documents/lfm_ws/src/lfm/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -Igeometry_msgs:/opt/ros/kinetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/kinetic/share/sensor_msgs/cmake/../msg -p lfm -o /home/et/Documents/lfm_ws/devel/include/lfm -e /opt/ros/kinetic/share/gencpp/cmake/..
 
+/home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetection.h: /opt/ros/kinetic/lib/gencpp/gen_cpp.py
+/home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetection.h: /home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg
+/home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetection.h: /opt/ros/kinetic/share/std_msgs/msg/Header.msg
+/home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetection.h: /opt/ros/kinetic/share/geometry_msgs/msg/Quaternion.msg
+/home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetection.h: /opt/ros/kinetic/share/geometry_msgs/msg/Point.msg
+/home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetection.h: /opt/ros/kinetic/share/geometry_msgs/msg/PoseWithCovariance.msg
+/home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetection.h: /opt/ros/kinetic/share/geometry_msgs/msg/PoseWithCovarianceStamped.msg
+/home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetection.h: /opt/ros/kinetic/share/geometry_msgs/msg/Pose.msg
+/home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetection.h: /opt/ros/kinetic/share/gencpp/msg.h.template
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/et/Documents/lfm_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Generating C++ code from lfm/AprilTagDetection.msg"
+	cd /home/et/Documents/lfm_ws/src/lfm && /home/et/Documents/lfm_ws/build/catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg -Ilfm:/home/et/Documents/lfm_ws/src/lfm/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -Igeometry_msgs:/opt/ros/kinetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/kinetic/share/sensor_msgs/cmake/../msg -p lfm -o /home/et/Documents/lfm_ws/devel/include/lfm -e /opt/ros/kinetic/share/gencpp/cmake/..
+
+/home/et/Documents/lfm_ws/devel/include/lfm/Block.h: /opt/ros/kinetic/lib/gencpp/gen_cpp.py
+/home/et/Documents/lfm_ws/devel/include/lfm/Block.h: /home/et/Documents/lfm_ws/src/lfm/msg/Block.msg
+/home/et/Documents/lfm_ws/devel/include/lfm/Block.h: /opt/ros/kinetic/share/gencpp/msg.h.template
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/et/Documents/lfm_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Generating C++ code from lfm/Block.msg"
+	cd /home/et/Documents/lfm_ws/src/lfm && /home/et/Documents/lfm_ws/build/catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/gencpp/cmake/../../../lib/gencpp/gen_cpp.py /home/et/Documents/lfm_ws/src/lfm/msg/Block.msg -Ilfm:/home/et/Documents/lfm_ws/src/lfm/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -Igeometry_msgs:/opt/ros/kinetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/kinetic/share/sensor_msgs/cmake/../msg -p lfm -o /home/et/Documents/lfm_ws/devel/include/lfm -e /opt/ros/kinetic/share/gencpp/cmake/..
+
 lfm_generate_messages_cpp: lfm/CMakeFiles/lfm_generate_messages_cpp
-lfm_generate_messages_cpp: /home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetection.h
+lfm_generate_messages_cpp: /home/et/Documents/lfm_ws/devel/include/lfm/State.h
+lfm_generate_messages_cpp: /home/et/Documents/lfm_ws/devel/include/lfm/Links.h
+lfm_generate_messages_cpp: /home/et/Documents/lfm_ws/devel/include/lfm/Action.h
 lfm_generate_messages_cpp: /home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetectionArray.h
+lfm_generate_messages_cpp: /home/et/Documents/lfm_ws/devel/include/lfm/AprilTagDetection.h
+lfm_generate_messages_cpp: /home/et/Documents/lfm_ws/devel/include/lfm/Block.h
 lfm_generate_messages_cpp: lfm/CMakeFiles/lfm_generate_messages_cpp.dir/build.make
 
 .PHONY : lfm_generate_messages_cpp

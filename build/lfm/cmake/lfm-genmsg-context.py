@@ -1,6 +1,6 @@
 # generated from genmsg/cmake/pkg-genmsg.context.in
 
-messages_str = "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg;/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetectionArray.msg"
+messages_str = "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg;/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetectionArray.msg;/home/et/Documents/lfm_ws/src/lfm/msg/Block.msg;/home/et/Documents/lfm_ws/src/lfm/msg/Links.msg;/home/et/Documents/lfm_ws/src/lfm/msg/State.msg;/home/et/Documents/lfm_ws/src/lfm/msg/Action.msg"
 services_str = ""
 pkg_name = "lfm"
 dependencies_str = "std_msgs;geometry_msgs;sensor_msgs"

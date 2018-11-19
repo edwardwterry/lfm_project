@@ -53,20 +53,30 @@ CMAKE_BINARY_DIR = /home/et/Documents/lfm_ws/build
 # Include the progress variables for this target.
 include lfm/CMakeFiles/lfm_generate_messages_lisp.dir/progress.make
 
-lfm/CMakeFiles/lfm_generate_messages_lisp: /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetection.lisp
+lfm/CMakeFiles/lfm_generate_messages_lisp: /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/State.lisp
+lfm/CMakeFiles/lfm_generate_messages_lisp: /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/Links.lisp
+lfm/CMakeFiles/lfm_generate_messages_lisp: /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/Action.lisp
 lfm/CMakeFiles/lfm_generate_messages_lisp: /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetectionArray.lisp
+lfm/CMakeFiles/lfm_generate_messages_lisp: /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetection.lisp
+lfm/CMakeFiles/lfm_generate_messages_lisp: /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/Block.lisp
 
 
-/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetection.lisp: /opt/ros/kinetic/lib/genlisp/gen_lisp.py
-/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetection.lisp: /home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg
-/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetection.lisp: /opt/ros/kinetic/share/std_msgs/msg/Header.msg
-/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetection.lisp: /opt/ros/kinetic/share/geometry_msgs/msg/Quaternion.msg
-/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetection.lisp: /opt/ros/kinetic/share/geometry_msgs/msg/Point.msg
-/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetection.lisp: /opt/ros/kinetic/share/geometry_msgs/msg/PoseWithCovariance.msg
-/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetection.lisp: /opt/ros/kinetic/share/geometry_msgs/msg/PoseWithCovarianceStamped.msg
-/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetection.lisp: /opt/ros/kinetic/share/geometry_msgs/msg/Pose.msg
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/et/Documents/lfm_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating Lisp code from lfm/AprilTagDetection.msg"
-	cd /home/et/Documents/lfm_ws/build/lfm && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/genlisp/cmake/../../../lib/genlisp/gen_lisp.py /home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg -Ilfm:/home/et/Documents/lfm_ws/src/lfm/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -Igeometry_msgs:/opt/ros/kinetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/kinetic/share/sensor_msgs/cmake/../msg -p lfm -o /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg
+/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/State.lisp: /opt/ros/kinetic/lib/genlisp/gen_lisp.py
+/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/State.lisp: /home/et/Documents/lfm_ws/src/lfm/msg/State.msg
+/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/State.lisp: /home/et/Documents/lfm_ws/src/lfm/msg/Block.msg
+/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/State.lisp: /opt/ros/kinetic/share/std_msgs/msg/Header.msg
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/et/Documents/lfm_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating Lisp code from lfm/State.msg"
+	cd /home/et/Documents/lfm_ws/build/lfm && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/genlisp/cmake/../../../lib/genlisp/gen_lisp.py /home/et/Documents/lfm_ws/src/lfm/msg/State.msg -Ilfm:/home/et/Documents/lfm_ws/src/lfm/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -Igeometry_msgs:/opt/ros/kinetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/kinetic/share/sensor_msgs/cmake/../msg -p lfm -o /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg
+
+/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/Links.lisp: /opt/ros/kinetic/lib/genlisp/gen_lisp.py
+/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/Links.lisp: /home/et/Documents/lfm_ws/src/lfm/msg/Links.msg
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/et/Documents/lfm_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating Lisp code from lfm/Links.msg"
+	cd /home/et/Documents/lfm_ws/build/lfm && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/genlisp/cmake/../../../lib/genlisp/gen_lisp.py /home/et/Documents/lfm_ws/src/lfm/msg/Links.msg -Ilfm:/home/et/Documents/lfm_ws/src/lfm/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -Igeometry_msgs:/opt/ros/kinetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/kinetic/share/sensor_msgs/cmake/../msg -p lfm -o /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg
+
+/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/Action.lisp: /opt/ros/kinetic/lib/genlisp/gen_lisp.py
+/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/Action.lisp: /home/et/Documents/lfm_ws/src/lfm/msg/Action.msg
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/et/Documents/lfm_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Generating Lisp code from lfm/Action.msg"
+	cd /home/et/Documents/lfm_ws/build/lfm && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/genlisp/cmake/../../../lib/genlisp/gen_lisp.py /home/et/Documents/lfm_ws/src/lfm/msg/Action.msg -Ilfm:/home/et/Documents/lfm_ws/src/lfm/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -Igeometry_msgs:/opt/ros/kinetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/kinetic/share/sensor_msgs/cmake/../msg -p lfm -o /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg
 
 /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetectionArray.lisp: /opt/ros/kinetic/lib/genlisp/gen_lisp.py
 /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetectionArray.lisp: /home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetectionArray.msg
@@ -77,12 +87,32 @@ lfm/CMakeFiles/lfm_generate_messages_lisp: /home/et/Documents/lfm_ws/devel/share
 /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetectionArray.lisp: /opt/ros/kinetic/share/geometry_msgs/msg/PoseWithCovariance.msg
 /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetectionArray.lisp: /opt/ros/kinetic/share/geometry_msgs/msg/PoseWithCovarianceStamped.msg
 /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetectionArray.lisp: /opt/ros/kinetic/share/geometry_msgs/msg/Pose.msg
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/et/Documents/lfm_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating Lisp code from lfm/AprilTagDetectionArray.msg"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/et/Documents/lfm_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Generating Lisp code from lfm/AprilTagDetectionArray.msg"
 	cd /home/et/Documents/lfm_ws/build/lfm && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/genlisp/cmake/../../../lib/genlisp/gen_lisp.py /home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetectionArray.msg -Ilfm:/home/et/Documents/lfm_ws/src/lfm/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -Igeometry_msgs:/opt/ros/kinetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/kinetic/share/sensor_msgs/cmake/../msg -p lfm -o /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg
 
+/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetection.lisp: /opt/ros/kinetic/lib/genlisp/gen_lisp.py
+/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetection.lisp: /home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg
+/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetection.lisp: /opt/ros/kinetic/share/std_msgs/msg/Header.msg
+/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetection.lisp: /opt/ros/kinetic/share/geometry_msgs/msg/Quaternion.msg
+/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetection.lisp: /opt/ros/kinetic/share/geometry_msgs/msg/Point.msg
+/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetection.lisp: /opt/ros/kinetic/share/geometry_msgs/msg/PoseWithCovariance.msg
+/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetection.lisp: /opt/ros/kinetic/share/geometry_msgs/msg/PoseWithCovarianceStamped.msg
+/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetection.lisp: /opt/ros/kinetic/share/geometry_msgs/msg/Pose.msg
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/et/Documents/lfm_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Generating Lisp code from lfm/AprilTagDetection.msg"
+	cd /home/et/Documents/lfm_ws/build/lfm && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/genlisp/cmake/../../../lib/genlisp/gen_lisp.py /home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg -Ilfm:/home/et/Documents/lfm_ws/src/lfm/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -Igeometry_msgs:/opt/ros/kinetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/kinetic/share/sensor_msgs/cmake/../msg -p lfm -o /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg
+
+/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/Block.lisp: /opt/ros/kinetic/lib/genlisp/gen_lisp.py
+/home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/Block.lisp: /home/et/Documents/lfm_ws/src/lfm/msg/Block.msg
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/et/Documents/lfm_ws/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Generating Lisp code from lfm/Block.msg"
+	cd /home/et/Documents/lfm_ws/build/lfm && ../catkin_generated/env_cached.sh /usr/bin/python /opt/ros/kinetic/share/genlisp/cmake/../../../lib/genlisp/gen_lisp.py /home/et/Documents/lfm_ws/src/lfm/msg/Block.msg -Ilfm:/home/et/Documents/lfm_ws/src/lfm/msg -Istd_msgs:/opt/ros/kinetic/share/std_msgs/cmake/../msg -Igeometry_msgs:/opt/ros/kinetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/kinetic/share/sensor_msgs/cmake/../msg -p lfm -o /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg
+
 lfm_generate_messages_lisp: lfm/CMakeFiles/lfm_generate_messages_lisp
-lfm_generate_messages_lisp: /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetection.lisp
+lfm_generate_messages_lisp: /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/State.lisp
+lfm_generate_messages_lisp: /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/Links.lisp
+lfm_generate_messages_lisp: /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/Action.lisp
 lfm_generate_messages_lisp: /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetectionArray.lisp
+lfm_generate_messages_lisp: /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/AprilTagDetection.lisp
+lfm_generate_messages_lisp: /home/et/Documents/lfm_ws/devel/share/common-lisp/ros/lfm/msg/Block.lisp
 lfm_generate_messages_lisp: lfm/CMakeFiles/lfm_generate_messages_lisp.dir/build.make
 
 .PHONY : lfm_generate_messages_lisp

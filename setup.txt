@@ -1,0 +1,5 @@
+roslaunch apriltags2_ros continuous_detection.launch 
+rostopic echo /position_write_topic
+roslaunch swiftpro pro_control.launch
+rostopic pub /pick_tag std_msgs/Int32 "data: 19"
+rosrun lfm lfm_node

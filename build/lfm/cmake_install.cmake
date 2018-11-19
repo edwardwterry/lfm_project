@@ -36,6 +36,10 @@ if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspeci
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/lfm/msg" TYPE FILE FILES
     "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetection.msg"
     "/home/et/Documents/lfm_ws/src/lfm/msg/AprilTagDetectionArray.msg"
+    "/home/et/Documents/lfm_ws/src/lfm/msg/Block.msg"
+    "/home/et/Documents/lfm_ws/src/lfm/msg/Links.msg"
+    "/home/et/Documents/lfm_ws/src/lfm/msg/State.msg"
+    "/home/et/Documents/lfm_ws/src/lfm/msg/Action.msg"
     )
 endif()
 
