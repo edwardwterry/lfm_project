@@ -41,6 +41,7 @@ class Controller {
 
         ros::Publisher arm_pos_cmd_pub = n.advertise<swiftpro::position>("/position_write_topic", 1);
         ros::Publisher pump_pub = n.advertise<swiftpro::status>("/pump_topic", 1);
+        // ros::Publisher tag_centers_arm_pub = n.advertise<geometry_msgs::PoseStamped>("/tag_centers_arm", 1);
         // std::map<int, Eigen::Vector2f> tag_centers_pix_cam;
         std::map<int, Eigen::Vector3f> tag_centers_3d_cam;
         std::map<int, Eigen::Vector3f> tag_centers_3d_arm;
@@ -378,6 +379,7 @@ void Controller::processActionClbk(const lfm::Action& msg){
     }
     arm_state = ArmState::HOVER_START; // if all clear, move to the first position!
     arm_pos_desired = arm_pos_sequence[arm_state];
+    // tag_centers_arm_pub.publish(/*TODO*/);
 }
 
 Eigen::Vector3f Controller::getTagCoordsMillimeters(const int& tag_id){
