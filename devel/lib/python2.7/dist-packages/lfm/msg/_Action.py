@@ -7,16 +7,15 @@ import struct
 
 
 class Action(genpy.Message):
-  _md5sum = "5df7593a24a770255fa2ccf8e16dcf4f"
+  _md5sum = "7529da8ba0ed13c6f3938479d680da6a"
   _type = "lfm/Action"
   _has_header = False #flag to mark the presence of a Header object
   _full_text = """int32 target_tag
-float32 z
 float32 dist
 float32 angle
 """
-  __slots__ = ['target_tag','z','dist','angle']
-  _slot_types = ['int32','float32','float32','float32']
+  __slots__ = ['target_tag','dist','angle']
+  _slot_types = ['int32','float32','float32']
 
   def __init__(self, *args, **kwds):
     """
@@ -26,7 +25,7 @@ float32 angle
     changes.  You cannot mix in-order arguments and keyword arguments.
 
     The available fields are:
-       target_tag,z,dist,angle
+       target_tag,dist,angle
 
     :param args: complete set of field values, in .msg order
     :param kwds: use keyword arguments corresponding to message field names
@@ -37,15 +36,12 @@ float32 angle
       #message fields cannot be None, assign default values for those that are
       if self.target_tag is None:
         self.target_tag = 0
-      if self.z is None:
-        self.z = 0.
       if self.dist is None:
         self.dist = 0.
       if self.angle is None:
         self.angle = 0.
     else:
       self.target_tag = 0
-      self.z = 0.
       self.dist = 0.
       self.angle = 0.
 
@@ -62,7 +58,7 @@ float32 angle
     """
     try:
       _x = self
-      buff.write(_get_struct_i3f().pack(_x.target_tag, _x.z, _x.dist, _x.angle))
+      buff.write(_get_struct_i2f().pack(_x.target_tag, _x.dist, _x.angle))
     except struct.error as se: self._check_types(struct.error("%s: '%s' when writing '%s'" % (type(se), str(se), str(locals().get('_x', self)))))
     except TypeError as te: self._check_types(ValueError("%s: '%s' when writing '%s'" % (type(te), str(te), str(locals().get('_x', self)))))
 
@@ -75,8 +71,8 @@ float32 angle
       end = 0
       _x = self
       start = end
-      end += 16
-      (_x.target_tag, _x.z, _x.dist, _x.angle,) = _get_struct_i3f().unpack(str[start:end])
+      end += 12
+      (_x.target_tag, _x.dist, _x.angle,) = _get_struct_i2f().unpack(str[start:end])
       return self
     except struct.error as e:
       raise genpy.DeserializationError(e) #most likely buffer underfill
@@ -90,7 +86,7 @@ float32 angle
     """
     try:
       _x = self
-      buff.write(_get_struct_i3f().pack(_x.target_tag, _x.z, _x.dist, _x.angle))
+      buff.write(_get_struct_i2f().pack(_x.target_tag, _x.dist, _x.angle))
     except struct.error as se: self._check_types(struct.error("%s: '%s' when writing '%s'" % (type(se), str(se), str(locals().get('_x', self)))))
     except TypeError as te: self._check_types(ValueError("%s: '%s' when writing '%s'" % (type(te), str(te), str(locals().get('_x', self)))))
 
@@ -104,8 +100,8 @@ float32 angle
       end = 0
       _x = self
       start = end
-      end += 16
-      (_x.target_tag, _x.z, _x.dist, _x.angle,) = _get_struct_i3f().unpack(str[start:end])
+      end += 12
+      (_x.target_tag, _x.dist, _x.angle,) = _get_struct_i2f().unpack(str[start:end])
       return self
     except struct.error as e:
       raise genpy.DeserializationError(e) #most likely buffer underfill
@@ -114,9 +110,9 @@ _struct_I = genpy.struct_I
 def _get_struct_I():
     global _struct_I
     return _struct_I
-_struct_i3f = None
-def _get_struct_i3f():
-    global _struct_i3f
-    if _struct_i3f is None:
-        _struct_i3f = struct.Struct("<i3f")
-    return _struct_i3f
+_struct_i2f = None
+def _get_struct_i2f():
+    global _struct_i2f
+    if _struct_i2f is None:
+        _struct_i2f = struct.Struct("<i2f")
+    return _struct_i2f

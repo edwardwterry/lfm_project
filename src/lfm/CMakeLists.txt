@@ -20,6 +20,8 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
 )
 
+#catkin_python_setup()
+
 find_package(realsense2)
 if(NOT realsense2_FOUND)
     message(FATAL_ERROR "\n\n Intel RealSense SDK 2.0 is missing, please install it from https://github.com/IntelRealSense/librealsense/releases\n\n")
@@ -123,7 +125,7 @@ add_message_files(
 catkin_package(
    INCLUDE_DIRS include
 #  LIBRARIES lfm
-#  CATKIN_DEPENDS roscpp rospy std_msgs
+  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
 #  DEPENDS system_lib
 )
 

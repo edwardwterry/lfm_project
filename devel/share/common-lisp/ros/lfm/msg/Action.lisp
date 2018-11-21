@@ -12,11 +12,6 @@
     :initarg :target_tag
     :type cl:integer
     :initform 0)
-   (z
-    :reader z
-    :initarg :z
-    :type cl:float
-    :initform 0.0)
    (dist
     :reader dist
     :initarg :dist
@@ -42,11 +37,6 @@
   (roslisp-msg-protocol:msg-deprecation-warning "Using old-style slot reader lfm-msg:target_tag-val is deprecated.  Use lfm-msg:target_tag instead.")
   (target_tag m))
 
-(cl:ensure-generic-function 'z-val :lambda-list '(m))
-(cl:defmethod z-val ((m <Action>))
-  (roslisp-msg-protocol:msg-deprecation-warning "Using old-style slot reader lfm-msg:z-val is deprecated.  Use lfm-msg:z instead.")
-  (z m))
-
 (cl:ensure-generic-function 'dist-val :lambda-list '(m))
 (cl:defmethod dist-val ((m <Action>))
   (roslisp-msg-protocol:msg-deprecation-warning "Using old-style slot reader lfm-msg:dist-val is deprecated.  Use lfm-msg:dist instead.")
@@ -64,11 +54,6 @@
     (cl:write-byte (cl:ldb (cl:byte 8 16) unsigned) ostream)
     (cl:write-byte (cl:ldb (cl:byte 8 24) unsigned) ostream)
     )
-  (cl:let ((bits (roslisp-utils:encode-single-float-bits (cl:slot-value msg 'z))))
-    (cl:write-byte (cl:ldb (cl:byte 8 0) bits) ostream)
-    (cl:write-byte (cl:ldb (cl:byte 8 8) bits) ostream)
-    (cl:write-byte (cl:ldb (cl:byte 8 16) bits) ostream)
-    (cl:write-byte (cl:ldb (cl:byte 8 24) bits) ostream))
   (cl:let ((bits (roslisp-utils:encode-single-float-bits (cl:slot-value msg 'dist))))
     (cl:write-byte (cl:ldb (cl:byte 8 0) bits) ostream)
     (cl:write-byte (cl:ldb (cl:byte 8 8) bits) ostream)
@@ -93,12 +78,6 @@
       (cl:setf (cl:ldb (cl:byte 8 8) bits) (cl:read-byte istream))
       (cl:setf (cl:ldb (cl:byte 8 16) bits) (cl:read-byte istream))
       (cl:setf (cl:ldb (cl:byte 8 24) bits) (cl:read-byte istream))
-    (cl:setf (cl:slot-value msg 'z) (roslisp-utils:decode-single-float-bits bits)))
-    (cl:let ((bits 0))
-      (cl:setf (cl:ldb (cl:byte 8 0) bits) (cl:read-byte istream))
-      (cl:setf (cl:ldb (cl:byte 8 8) bits) (cl:read-byte istream))
-      (cl:setf (cl:ldb (cl:byte 8 16) bits) (cl:read-byte istream))
-      (cl:setf (cl:ldb (cl:byte 8 24) bits) (cl:read-byte istream))
     (cl:setf (cl:slot-value msg 'dist) (roslisp-utils:decode-single-float-bits bits)))
     (cl:let ((bits 0))
       (cl:setf (cl:ldb (cl:byte 8 0) bits) (cl:read-byte istream))
@@ -116,19 +95,18 @@
   "lfm/Action")
 (cl:defmethod roslisp-msg-protocol:md5sum ((type (cl:eql '<Action>)))
   "Returns md5sum for a message object of type '<Action>"
-  "5df7593a24a770255fa2ccf8e16dcf4f")
+  "7529da8ba0ed13c6f3938479d680da6a")
 (cl:defmethod roslisp-msg-protocol:md5sum ((type (cl:eql 'Action)))
   "Returns md5sum for a message object of type 'Action"
-  "5df7593a24a770255fa2ccf8e16dcf4f")
+  "7529da8ba0ed13c6f3938479d680da6a")
 (cl:defmethod roslisp-msg-protocol:message-definition ((type (cl:eql '<Action>)))
   "Returns full string definition for message of type '<Action>"
-  (cl:format cl:nil "int32 target_tag~%float32 z~%float32 dist~%float32 angle~%~%~%"))
+  (cl:format cl:nil "int32 target_tag~%float32 dist~%float32 angle~%~%~%"))
 (cl:defmethod roslisp-msg-protocol:message-definition ((type (cl:eql 'Action)))
   "Returns full string definition for message of type 'Action"
-  (cl:format cl:nil "int32 target_tag~%float32 z~%float32 dist~%float32 angle~%~%~%"))
+  (cl:format cl:nil "int32 target_tag~%float32 dist~%float32 angle~%~%~%"))
 (cl:defmethod roslisp-msg-protocol:serialization-length ((msg <Action>))
   (cl:+ 0
-     4
      4
      4
      4
@@ -137,7 +115,6 @@
   "Converts a ROS message object to a list"
   (cl:list 'Action
     (cl:cons ':target_tag (target_tag msg))
-    (cl:cons ':z (z msg))
     (cl:cons ':dist (dist msg))
     (cl:cons ':angle (angle msg))
 ))

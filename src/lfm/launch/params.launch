@@ -1,0 +1,9 @@
+<launch>
+
+    <include file="$(find apriltags2_ros)/launch/continuous_detection.launch">
+    </include>
+    <arg name="scene_file" default="$(find lfm)/scene.yaml"/>   
+    <arg name="extrinsics_file" default="$(find lfm)/extrinsics.yaml"/>   
+    <rosparam command="load" file="$(arg scene_file)"/>
+    <rosparam command="load" file="$(arg extrinsics_file)"/>
+</launch>

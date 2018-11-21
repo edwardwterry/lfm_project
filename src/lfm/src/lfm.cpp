@@ -41,7 +41,7 @@ class Controller {
 
         ros::Publisher arm_pos_cmd_pub = n.advertise<swiftpro::position>("/position_write_topic", 1);
         ros::Publisher pump_pub = n.advertise<swiftpro::status>("/pump_topic", 1);
-        std::map<int, Eigen::Vector2f> tag_centers_pix_cam;
+        // std::map<int, Eigen::Vector2f> tag_centers_pix_cam;
         std::map<int, Eigen::Vector3f> tag_centers_3d_cam;
         std::map<int, Eigen::Vector3f> tag_centers_3d_arm;
         sensor_msgs::CameraInfo info_msg;
@@ -55,15 +55,15 @@ class Controller {
         std::vector<Eigen::Vector3f> arm_pos_sequence;
 
         float pos_error_tolerance = 1.0; // mm
-        float standoff_height = 20.0; // mm
-        float clear_height = 100.0; // mm
+        float standoff_height = 40.0; // mm
+        float clear_height = 200.0; // mm
         float pick_height = 2.0; // mm
 
         Eigen::Vector3f home_pos = Eigen::Vector3f(10.0, 150.0, 100.0);
 
         std::vector<float> R_limits {100.0, 260.0};
         std::vector<float> th_limits {-45.0, 45.0};
-        std::vector<float> z_limits {-1.0, 160.0};
+        std::vector<float> z_limits {-1.0, 200.0};
         
         enum ArmState{
             IDLE = -1,
@@ -205,10 +205,10 @@ void Controller::run(){
         info_pub.publish(info_msg);
         if (!extrinsics_calculated){
             swiftpro::position home;
-            home.x = 10.0f;
-            home.y = 150.0f;
-            home.z = 100.0f;
-            arm_pos_desired = Eigen::Vector3f(home.x, home.y, home.z);
+            home.x = home_pos[0];
+            home.y = home_pos[1];
+            home.z = home_pos[2];
+            arm_pos_desired = home_pos;//Eigen::Vector3f(home.x, home.y, home.z);
             arm_pos_cmd_pub.publish(home); // move it out of the way
             if (Controller::checkReached()){
                 ROS_INFO("Calculating extrinsics...");
@@ -285,6 +285,8 @@ void Controller::updateState(){
             if (Controller::checkReached()){
                 arm_state++;
                 arm_pos_desired = arm_pos_sequence[arm_state];
+                std::cout<<arm_pos_desired<<std::endl;
+                ros::Duration(0.5).sleep();
             }
     }
 }
@@ -364,8 +366,7 @@ void Controller::processActionClbk(const lfm::Action& msg){
     release[2] = pick_height;
     hover_end = release;
     hover_end[2] = standoff_height;
-    clear = hover_end;
-    clear[2] = clear_height;
+    clear = home_pos;
     arm_pos_sequence = {hover_start, pick, release, hover_end, clear};
     for (auto pos : arm_pos_sequence){
         if (!Controller::inBounds(pos)){
@@ -448,8 +449,8 @@ bool Controller::calculateExtrinsics(const std::map<int, Eigen::Vector3f>& cam,
         pbar /= num_points;
         qbar /= num_points;
         
-        std::cout<<pbar<<std::endl;        
-        std::cout<<qbar<<std::endl;        
+        // std::cout<<pbar<<std::endl;        
+        // std::cout<<qbar<<std::endl;        
 
         // calc centered vectors
         for (int i = 0; i < num_points; i++){
@@ -458,10 +459,10 @@ bool Controller::calculateExtrinsics(const std::map<int, Eigen::Vector3f>& cam,
             X.col(i) << it_cam->second - pbar;
             Y.col(i) << it_arm->second - qbar;
         }
-        std::cout<<"X: \n";
-        std::cout<<X<<std::endl;
-        std::cout<<"Y: \n";
-        std::cout<<Y<<std::endl;
+        // std::cout<<"X: \n";
+        // std::cout<<X<<std::endl;
+        // std::cout<<"Y: \n";
+        // std::cout<<Y<<std::endl;
         // calc covariance matrix
         Eigen::Matrix3f S(3, 3);
         S = X * Y.transpose();
@@ -481,8 +482,29 @@ bool Controller::calculateExtrinsics(const std::map<int, Eigen::Vector3f>& cam,
         // calc t
         t = qbar - R * pbar;
 
-        std::cout<<"R:"<<R<<std::endl;
-        std::cout<<"t:"<<t<<std::endl;
+        // std::cout<<"R:"<<R<<std::endl;
+        // std::cout<<"t:"<<t<<std::endl;
+
+        std::vector<float> R_param;
+        R_param.push_back(R(0,0));
+        R_param.push_back(R(0,1));
+        R_param.push_back(R(0,2));
+        R_param.push_back(R(1,0));
+        R_param.push_back(R(1,1));
+        R_param.push_back(R(1,2));
+        R_param.push_back(R(2,0));
+        R_param.push_back(R(2,1));
+        R_param.push_back(R(2,2));
+
+        std::vector<float> t_param;
+        t_param.push_back(t(0));
+        t_param.push_back(t(1));
+        t_param.push_back(t(2)); 
+
+        n.setParam("R", R_param);
+        n.setParam("t", t_param);
+
+        ROS_INFO("Extrinsics calculated!");
 
         return true;
     } else return false;

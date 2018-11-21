@@ -25,13 +25,11 @@ struct Action_
 
   Action_()
     : target_tag(0)
-    , z(0.0)
     , dist(0.0)
     , angle(0.0)  {
     }
   Action_(const ContainerAllocator& _alloc)
     : target_tag(0)
-    , z(0.0)
     , dist(0.0)
     , angle(0.0)  {
   (void)_alloc;
@@ -41,9 +39,6 @@ struct Action_
 
    typedef int32_t _target_tag_type;
   _target_tag_type target_tag;
-
-   typedef float _z_type;
-  _z_type z;
 
    typedef float _dist_type;
   _dist_type dist;
@@ -129,12 +124,12 @@ struct MD5Sum< ::lfm::Action_<ContainerAllocator> >
 {
   static const char* value()
   {
-    return "5df7593a24a770255fa2ccf8e16dcf4f";
+    return "7529da8ba0ed13c6f3938479d680da6a";
   }
 
   static const char* value(const ::lfm::Action_<ContainerAllocator>&) { return value(); }
-  static const uint64_t static_value1 = 0x5df7593a24a77025ULL;
-  static const uint64_t static_value2 = 0x5fa2ccf8e16dcf4fULL;
+  static const uint64_t static_value1 = 0x7529da8ba0ed13c6ULL;
+  static const uint64_t static_value2 = 0xf3938479d680da6aULL;
 };
 
 template<class ContainerAllocator>
@@ -154,7 +149,6 @@ struct Definition< ::lfm::Action_<ContainerAllocator> >
   static const char* value()
   {
     return "int32 target_tag\n\
-float32 z\n\
 float32 dist\n\
 float32 angle\n\
 ";
@@ -176,7 +170,6 @@ namespace serialization
     template<typename Stream, typename T> inline static void allInOne(Stream& stream, T m)
     {
       stream.next(m.target_tag);
-      stream.next(m.z);
       stream.next(m.dist);
       stream.next(m.angle);
     }
@@ -199,8 +192,6 @@ struct Printer< ::lfm::Action_<ContainerAllocator> >
   {
     s << indent << "target_tag: ";
     Printer<int32_t>::stream(s, indent + "  ", v.target_tag);
-    s << indent << "z: ";
-    Printer<float>::stream(s, indent + "  ", v.z);
     s << indent << "dist: ";
     Printer<float>::stream(s, indent + "  ", v.dist);
     s << indent << "angle: ";

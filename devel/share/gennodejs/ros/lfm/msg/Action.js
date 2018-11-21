@@ -19,7 +19,6 @@ class Action {
     if (initObj === null) {
       // initObj === null is a special case for deserialization where we don't initialize fields
       this.target_tag = null;
-      this.z = null;
       this.dist = null;
       this.angle = null;
     }
@@ -29,12 +28,6 @@ class Action {
       }
       else {
         this.target_tag = 0;
-      }
-      if (initObj.hasOwnProperty('z')) {
-        this.z = initObj.z
-      }
-      else {
-        this.z = 0.0;
       }
       if (initObj.hasOwnProperty('dist')) {
         this.dist = initObj.dist
@@ -55,8 +48,6 @@ class Action {
     // Serializes a message object of type Action
     // Serialize message field [target_tag]
     bufferOffset = _serializer.int32(obj.target_tag, buffer, bufferOffset);
-    // Serialize message field [z]
-    bufferOffset = _serializer.float32(obj.z, buffer, bufferOffset);
     // Serialize message field [dist]
     bufferOffset = _serializer.float32(obj.dist, buffer, bufferOffset);
     // Serialize message field [angle]
@@ -70,8 +61,6 @@ class Action {
     let data = new Action(null);
     // Deserialize message field [target_tag]
     data.target_tag = _deserializer.int32(buffer, bufferOffset);
-    // Deserialize message field [z]
-    data.z = _deserializer.float32(buffer, bufferOffset);
     // Deserialize message field [dist]
     data.dist = _deserializer.float32(buffer, bufferOffset);
     // Deserialize message field [angle]
@@ -80,7 +69,7 @@ class Action {
   }
 
   static getMessageSize(object) {
-    return 16;
+    return 12;
   }
 
   static datatype() {
@@ -90,14 +79,13 @@ class Action {
 
   static md5sum() {
     //Returns md5sum for a message object
-    return '5df7593a24a770255fa2ccf8e16dcf4f';
+    return '7529da8ba0ed13c6f3938479d680da6a';
   }
 
   static messageDefinition() {
     // Returns full string definition for message
     return `
     int32 target_tag
-    float32 z
     float32 dist
     float32 angle
     
@@ -115,13 +103,6 @@ class Action {
     }
     else {
       resolved.target_tag = 0
-    }
-
-    if (msg.z !== undefined) {
-      resolved.z = msg.z;
-    }
-    else {
-      resolved.z = 0.0
     }
 
     if (msg.dist !== undefined) {
