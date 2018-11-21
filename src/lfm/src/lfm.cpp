@@ -40,6 +40,7 @@ class Controller {
 	    ros::Subscriber action_sub = n.subscribe("/action_request", 1, &Controller::processActionClbk, this);
 
         ros::Publisher arm_pos_cmd_pub = n.advertise<swiftpro::position>("/position_write_topic", 1);
+        ros::Publisher ready_for_action_pub = n.advertise<std_msgs::Bool>("/ready_for_action", 1);
         ros::Publisher pump_pub = n.advertise<swiftpro::status>("/pump_topic", 1);
         // ros::Publisher tag_centers_arm_pub = n.advertise<geometry_msgs::PoseStamped>("/tag_centers_arm", 1);
         // std::map<int, Eigen::Vector2f> tag_centers_pix_cam;
@@ -281,6 +282,9 @@ void Controller::updateState(){
         case ArmState::END_OF_SEQ:
             arm_state == ArmState::IDLE;
             arm_pos_sequence.clear();
+            std_msgs::Bool msg;
+            msg.data = true;
+            ready_for_action_pub.publish(msg);
             break;
         default:
             if (Controller::checkReached()){
