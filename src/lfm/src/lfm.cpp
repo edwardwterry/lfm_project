@@ -57,7 +57,7 @@ class Controller {
         float pos_error_tolerance = 1.0; // mm
         float standoff_height = 40.0; // mm
         float clear_height = 200.0; // mm
-        float pick_height = 2.0; // mm
+        float pick_height = 1.0; // mm
 
         Eigen::Vector3f home_pos = Eigen::Vector3f(10.0, 150.0, 100.0);
 
@@ -286,7 +286,7 @@ void Controller::updateState(){
                 arm_state++;
                 arm_pos_desired = arm_pos_sequence[arm_state];
                 std::cout<<arm_pos_desired<<std::endl;
-                ros::Duration(0.5).sleep();
+                ros::Duration(0.2).sleep();
             }
     }
 }
@@ -377,6 +377,7 @@ void Controller::processActionClbk(const lfm::Action& msg){
         }
     }
     arm_state = ArmState::HOVER_START; // if all clear, move to the first position!
+    arm_pos_desired = arm_pos_sequence[arm_state];
 }
 
 Eigen::Vector3f Controller::getTagCoordsMillimeters(const int& tag_id){
