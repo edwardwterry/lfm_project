@@ -115,3 +115,112 @@ if __name__ == '__main__':
         run()
     except rospy.ROSInterruptException:
         pass
+
+# class LinkedBlocks():
+#   """
+#   Just a utility class for bookkeeping the probabilities for each link
+
+#   Instance variables
+#   ----------
+#   num_blocks : Number of blocks in the grid, this is essentially 16
+#   prob: a dictionary that keeps track of the connection probabilities
+#   links: a dictionary that keeps track of the adjacent blocks for a given block_id
+#   """
+#   def __init__(self, num_blocks):
+#     self._num_blocks = num_blocks
+#     self._prob = {}
+#     self._links = declare_connections()
+
+#   def set_probability(self, i, j, prob):
+#     """
+#     DO NOT MODIFY!
+
+#     Sets the connection probability for the link connecting blocks with block_ids
+#     i and j to the value specified by prob
+
+#     Parameters
+#     ----------
+#     i : index of one block in the link
+#     j : index of the other block in the link (the ordering doesn't matter)
+#     """
+#     self._prob[tuple(sorted((i, j)))] = prob
+
+#   def get_probability(self, i, j):
+#     """
+#     DO NOT MODIFY!
+
+#     Returns the current connection probability for the link connecting blocks 
+#     with block_ids i and j. Note that the ordering of i and j does not matter.
+#     """
+#     return self._prob[tuple(sorted((i, j)))]
+
+#   def get_all_links(self):
+#     """
+#     DO NOT MODIFY!
+
+#     Returns a list of all links in the grid.
+#     """
+#     return self._prob.keys()
+
+#   def get_links(self, i):
+#     """
+#     DO NOT MODIFY!
+
+#     Returns a list of the adjacent blocks for a given block_id, which may
+#     or may not be connected
+#     """
+#     return self._links[i]
+
+#   def get_link_entropy(self):
+#     """
+#     Returns a dictionary, where the key is the link and the value is
+#     the entropy of the distribution of whether the link is connected.
+#     """
+#     entropy = {}
+#     for link, prob in self._prob.iteritems():
+#       # TODO:
+#       raise NotImplementedError
+#     return entropy
+
+#   def compute_observation(self, block_id, state_pre, state_post, block_mappings):
+#     """
+#     DO NOT MODIFY!
+
+#     Computes the high level observation, whether a given block has moved (or not)
+
+#     Parameters
+#     ----------
+#     block_id : Corresponds to the block that was moved
+#     state_pre : V-REP data structure of the state before block was moved
+#     state_post : V-REP data structure of the state before block was moved
+#     block_mappings : V-REP data structure mapping grid definition to that of V-REP
+
+#     Returns
+#     ----------
+#     observation: A dictionary where the key is the block_id and value is whether
+#     that block moved (boolean)
+#     """
+#     observation = {}
+
+#     for block_id_adj in xrange(1, self._num_blocks+1):
+#       adj_idx = int(block_mappings.flatten()[block_id_adj-1]) - 1
+#       dist_moved = np.linalg.norm(np.array(state_post['Block'][adj_idx][:2]) - np.array(state_pre['Block'][adj_idx][:2]))
+#       if dist_moved > THRESHOLD_MOVED:
+#         print('When moving block {}, adjacent block {} moved {}'.format(block_id, block_id_adj, dist_moved))
+#         observation[block_id_adj] = True
+#       else:
+#         print('When moving block {}, adjacent block {} was stationary, it moved {} (m)'.format(block_id, block_id_adj, dist_moved))
+#         observation[block_id_adj] = False
+#     return observation
+
+#   def is_converged(self):
+#     """
+#     DO NOT MODIFY!
+
+#     Returns True, if the probabilities have converged (i.e. below certain thresholds)
+#     and False otherwise.
+#     """
+#     prob = np.array(self._prob.values())
+#     return np.all(np.logical_or(prob<THRESHOLD_LOWER_BOUND, prob>THRESHOLD_UPPER_BOUND))
+
+# def run_experiment():

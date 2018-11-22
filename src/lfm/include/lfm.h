@@ -1,4 +1,5 @@
 #include <iostream>
+#include <assert.h>
 
 #include <ros/ros.h>
 #include <librealsense2/rs.hpp>

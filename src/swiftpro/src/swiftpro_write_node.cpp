@@ -28,7 +28,7 @@ void position_write_callback(const swiftpro::position& msg)
 {
 	std::string Gcode = "";
 	std_msgs::String result;
-	char x[10];
+	char x[10]; // all were 10
 	char y[10];
 	char z[10];
 
@@ -39,9 +39,25 @@ void position_write_callback(const swiftpro::position& msg)
 	sprintf(y, "%.2f", msg.y);
 	sprintf(z, "%.2f", msg.z);
 	Gcode = (std::string)"G0 X" + x + " Y" + y + " Z" + z + " F10000" + "\r\n";
+	// std::string Gcode1 = (std::string)"G0 X" + x;
+	// std::string Gcode2 = (std::string)"G0 Y" + y;
+	// std::string Gcode3 = (std::string)"G0 Z" + z;
+	// Gcode4 = (std::string)"G0 X" + x + " Y" + y + " Z" + z + " F10000" + "\r\n";
+
 	ROS_INFO("%s", Gcode.c_str());
 	_serial.write(Gcode.c_str());
 	result.data = _serial.read(_serial.available());
+
+	// _serial.write(Gcode1.c_str());
+	// result.data = _serial.read(_serial.available());
+	// _serial.write(Gcode2.c_str());
+	// result.data = _serial.read(_serial.available());
+	// _serial.write(Gcode3.c_str());
+	// result.data = _serial.read(_serial.available());
+	// _serial.write(Gcode.c_str());
+	// result.data = _serial.read(_serial.available());
+
+	// ROS_INFO_STREAM("Read:" << result.data);
 }
 
 
@@ -246,7 +262,7 @@ int main(int argc, char** argv)
 		if (_serial.available())
 		{
 			result.data = _serial.read(_serial.available());
-			ROS_INFO_STREAM("Read:" << result.data);
+			// ROS_INFO_STREAM("Read:" << result.data);
 			for (int i = 0; i < result.data.length(); i++)
 				handlechar(result.data.c_str()[i]);
 

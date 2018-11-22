@@ -1,10 +1,8 @@
 <launch>
     <node name="lfm" pkg="lfm" type="lfm_node" output="screen"/>
 
-    <include file="$(find apriltags2_ros)/launch/continuous_detection.launch"/>
+    <include file="$(find apriltags2_ros)/launch/scene_detection.launch"/>
     <include file="$(find swiftpro)/launch/pro_control.launch"/>
     <arg name="scene_file" default="$(find lfm)/scene.yaml"/>   
-    <arg name="extrinsics_file" default="$(find lfm)/extrinsics.yaml"/>   
     <rosparam command="load" file="$(arg scene_file)"/>
-    <rosparam command="load" file="$(arg extrinsics_file)"/>
 </launch>

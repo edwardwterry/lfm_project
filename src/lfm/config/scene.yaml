@@ -1,4 +1,0 @@
-links_a: [0, 1]
-links_b: [1, 2]
-ground_truth_links: [1, 0]
-num_tags: 3

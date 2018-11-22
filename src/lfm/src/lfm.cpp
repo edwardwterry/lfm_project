@@ -1,4 +1,3 @@
-
 #include "lfm.h"
 
 class Controller {
@@ -15,6 +14,7 @@ class Controller {
         Eigen::Vector3f getTagCoordsMillimeters(const int& tag_id);
         Eigen::Vector3f calcReleaseCoords(const int& tag_id, const float& dist, const float& angle);
         Eigen::Vector3f cartesianToPolar(const Eigen::Vector3f& pos);
+        void getExtrinsicParams();
         void pickTagClbk(const std_msgs::Int32& msg);
         void statusClbk(const swiftpro::SwiftproState& msg);
         void sendPumpCmd();
@@ -57,11 +57,11 @@ class Controller {
         std::vector<Eigen::Vector3f> arm_pos_sequence;
 
         float pos_error_tolerance = 1.0; // mm
-        float standoff_height = 40.0; // mm
-        float clear_height = 200.0; // mm
-        float pick_height = 1.0; // mm
+        float standoff_height = 100.0; // mm 40.0
+        // float clear_height = 200.0; // mm
+        float pick_height = 70.0; // mm 1.0
 
-        Eigen::Vector3f home_pos = Eigen::Vector3f(10.0, 150.0, 100.0);
+        Eigen::Vector3f home_pos = Eigen::Vector3f(10.0, -150.0, 100.0);
 
         std::vector<float> R_limits {100.0, 260.0};
         std::vector<float> th_limits {-45.0, 45.0};
@@ -134,19 +134,19 @@ sensor_msgs::CameraInfo Controller::generateCalibrationData()
   return ci;
 }
 
-std::map<int, Eigen::Vector3f> Controller::generateTagsInArmCoords(){
-    std::map<int, Eigen::Vector3f> coords;
-    coords.insert(std::make_pair(0, Eigen::Vector3f(0.2435,	-0.0655, 0.)));
-    coords.insert(std::make_pair(1, Eigen::Vector3f(0.2435,	0., 0.)));
-    coords.insert(std::make_pair(2, Eigen::Vector3f(0.2435,	0.0645, 0.)));
-    coords.insert(std::make_pair(3, Eigen::Vector3f(0.1705,	-0.0655, 0.)));
-    coords.insert(std::make_pair(4, Eigen::Vector3f(0.1705,	0., 0.)));
-    coords.insert(std::make_pair(5, Eigen::Vector3f(0.1705,	0.0645, 0.)));
-    coords.insert(std::make_pair(6, Eigen::Vector3f(0.0965,	-0.0655, 0.)));
-    coords.insert(std::make_pair(7, Eigen::Vector3f(0.0965,	0., 0.)));
-    coords.insert(std::make_pair(8, Eigen::Vector3f(0.0965,	0.0645, 0.)));
-    return coords;
-}
+// std::map<int, Eigen::Vector3f> Controller::generateTagsInArmCoords(){
+//     std::map<int, Eigen::Vector3f> coords;
+//     coords.insert(std::make_pair(0, Eigen::Vector3f(0.2435,	-0.0655, 0.)));
+//     coords.insert(std::make_pair(1, Eigen::Vector3f(0.2435,	0., 0.)));
+//     coords.insert(std::make_pair(2, Eigen::Vector3f(0.2435,	0.0645, 0.)));
+//     coords.insert(std::make_pair(3, Eigen::Vector3f(0.1705,	-0.0655, 0.)));
+//     coords.insert(std::make_pair(4, Eigen::Vector3f(0.1705,	0., 0.)));
+//     coords.insert(std::make_pair(5, Eigen::Vector3f(0.1705,	0.0645, 0.)));
+//     coords.insert(std::make_pair(6, Eigen::Vector3f(0.0965,	-0.0655, 0.)));
+//     coords.insert(std::make_pair(7, Eigen::Vector3f(0.0965,	0., 0.)));
+//     coords.insert(std::make_pair(8, Eigen::Vector3f(0.0965,	0.0645, 0.)));
+//     return coords;
+// }
 
 void Controller::run(){
     rs2::pipeline_profile profile = pipe.start();
@@ -159,10 +159,13 @@ void Controller::run(){
     ros::Publisher info_pub = n.advertise<sensor_msgs::CameraInfo>("/camera/camera_info", 1);
     info_msg = generateCalibrationData();
     rs2_intr = createRs2Intrinsics();
-    tag_centers_3d_arm = generateTagsInArmCoords();
+    ros::Rate loop_rate = 4;
+    // tag_centers_3d_arm = generateTagsInArmCoords();
 
-    bool extrinsics_calculated = false;
-    ROS_INFO("Are all tags out of the scene?");
+    // bool extrinsics_calculated = false;
+    // ROS_INFO("Are all tags out of the scene?");
+
+    getExtrinsicParams();
 
     while(ros::ok()){
         // std::cout<<"running!"<<std::endl;
@@ -205,25 +208,27 @@ void Controller::run(){
         image_pub.publish(msg);
         info_msg.header.stamp = msg->header.stamp;
         info_pub.publish(info_msg);
-        if (!extrinsics_calculated){
-            swiftpro::position home;
-            home.x = home_pos[0];
-            home.y = home_pos[1];
-            home.z = home_pos[2];
-            arm_pos_desired = home_pos;//Eigen::Vector3f(home.x, home.y, home.z);
-            arm_pos_cmd_pub.publish(home); // move it out of the way
-            if (Controller::checkReached()){
-                ROS_INFO("Calculating extrinsics...");
-                extrinsics_calculated = calculateExtrinsics(tag_centers_3d_cam, tag_centers_3d_arm, R, t);
-            }
-        }
+        // if (!extrinsics_calculated){
+        //     swiftpro::position home;
+        //     home.x = home_pos[0];
+        //     home.y = home_pos[1];
+        //     home.z = home_pos[2];
+        //     arm_pos_desired = home_pos;//Eigen::Vector3f(home.x, home.y, home.z);
+        //     arm_pos_cmd_pub.publish(home); // move it out of the way
+        //     if (Controller::checkReached()){
+        //         ROS_INFO("Calculating extrinsics...");
+        //         extrinsics_calculated = calculateExtrinsics(tag_centers_3d_cam, tag_centers_3d_arm, R, t);
+        //     }
+        // }
 
         // do the real work
         updateState();
         sendPosCmd();
         sendPumpCmd();
-
+        std::cout<<"z desired: "<<arm_pos_desired[2]<<std::endl;;
+        
         ros::spinOnce();
+        loop_rate.sleep();
     }
 }
 
@@ -241,6 +246,27 @@ void Controller::run(){
 //         }
 //     }
 // }
+
+void Controller::getExtrinsicParams(){
+    std::vector<float> R_param, t_param;
+    n.getParam("R", R_param);
+    n.getParam("t", t_param);
+    assert(R_param.size() == 9 && t_param.size() == 3);
+    
+    R(0,0) = R_param[0];
+    R(0,1) = R_param[1];
+    R(0,2) = R_param[2];
+    R(1,0) = R_param[3];
+    R(1,1) = R_param[4];
+    R(1,2) = R_param[5];
+    R(2,0) = R_param[6];
+    R(2,1) = R_param[7];
+    R(2,2) = R_param[8];
+
+    t(0) = t_param[0];
+    t(1) = t_param[1];
+    t(2) = t_param[2];
+}
 
 void Controller::processTag3dCentersClbk(const lfm::AprilTagDetectionArray& msg){
     int num_detections = msg.detections.size();
@@ -282,16 +308,17 @@ void Controller::updateState(){
         case ArmState::END_OF_SEQ:{
             arm_state == ArmState::IDLE;
             arm_pos_sequence.clear();
-            std_msgs::Bool msg;
-            msg.data = true;
-            ready_for_action_pub.publish(msg);
+            // std_msgs::Bool msg;
+            // msg.data = true;
+            // ready_for_action_pub.publish(msg);
             break;}
         default:
             if (Controller::checkReached()){
                 arm_state++;
                 arm_pos_desired = arm_pos_sequence[arm_state];
-                std::cout<<arm_pos_desired<<std::endl;
-                ros::Duration(0.2).sleep();
+                std::cout<<"arm state: "<<arm_state<<std::endl;
+                // std::cout<<arm_pos_desired<<std::endl;
+                ros::Duration(1.5).sleep();
             }
             break;
     }
@@ -336,6 +363,7 @@ void Controller::statusClbk(const swiftpro::SwiftproState& msg){
 bool Controller::checkReached(){
     for (int i = 0; i < 3; i++){
         if (abs(arm_pos_desired[i] - arm_pos_actual[i]) > pos_error_tolerance){
+            std::cout<<"still travelling..."<<std::endl;
             return false;
         }
     }
@@ -375,6 +403,7 @@ void Controller::processActionClbk(const lfm::Action& msg){
     clear = home_pos;
     arm_pos_sequence = {hover_start, pick, release, hover_end, clear};
     for (auto pos : arm_pos_sequence){
+        std::cout<<pos<<std::endl;
         if (!Controller::inBounds(pos)){
             std::cout<<"Illegal move requested. Try again!"<<std::endl;
             arm_state = ArmState::IDLE;
@@ -434,90 +463,90 @@ rs2_intrinsics Controller::createRs2Intrinsics(){
     return intr;
 }
 
-bool Controller::calculateExtrinsics(const std::map<int, Eigen::Vector3f>& cam, 
-                                      const std::map<int, Eigen::Vector3f>& arm, 
-                                      Eigen::Matrix3f& R, 
-                                      Eigen::Vector3f& t){
-    int num_points = cam.size();
-    if (num_points == 9){
-        Eigen::MatrixXf X(3, cam.size());
-        Eigen::MatrixXf Y(3, cam.size());
-        Eigen::Vector3f pbar, qbar;
-        pbar << 0.0, 0.0, 0.0;
-        qbar << 0.0, 0.0, 0.0;
-        for (int i = 0; i < num_points; i++){
-            auto it_cam = cam.find(i);
-            auto it_arm = arm.find(i);
-            // assume wi = 1.0
-            pbar += it_cam->second;
-            qbar += it_arm->second;
-        }
+// bool Controller::calculateExtrinsics(const std::map<int, Eigen::Vector3f>& cam, 
+//                                       const std::map<int, Eigen::Vector3f>& arm, 
+//                                       Eigen::Matrix3f& R, 
+//                                       Eigen::Vector3f& t){
+//     int num_points = cam.size();
+//     if (num_points == 9){
+//         Eigen::MatrixXf X(3, cam.size());
+//         Eigen::MatrixXf Y(3, cam.size());
+//         Eigen::Vector3f pbar, qbar;
+//         pbar << 0.0, 0.0, 0.0;
+//         qbar << 0.0, 0.0, 0.0;
+//         for (int i = 0; i < num_points; i++){
+//             auto it_cam = cam.find(i);
+//             auto it_arm = arm.find(i);
+//             // assume wi = 1.0
+//             pbar += it_cam->second;
+//             qbar += it_arm->second;
+//         }
 
-        // calc weighted centroids
-        pbar /= num_points;
-        qbar /= num_points;
+//         // calc weighted centroids
+//         pbar /= num_points;
+//         qbar /= num_points;
         
-        // std::cout<<pbar<<std::endl;        
-        // std::cout<<qbar<<std::endl;        
+//         // std::cout<<pbar<<std::endl;        
+//         // std::cout<<qbar<<std::endl;        
 
-        // calc centered vectors
-        for (int i = 0; i < num_points; i++){
-            auto it_cam = cam.find(i);
-            auto it_arm = arm.find(i);
-            X.col(i) << it_cam->second - pbar;
-            Y.col(i) << it_arm->second - qbar;
-        }
-        // std::cout<<"X: \n";
-        // std::cout<<X<<std::endl;
-        // std::cout<<"Y: \n";
-        // std::cout<<Y<<std::endl;
-        // calc covariance matrix
-        Eigen::Matrix3f S(3, 3);
-        S = X * Y.transpose();
+//         // calc centered vectors
+//         for (int i = 0; i < num_points; i++){
+//             auto it_cam = cam.find(i);
+//             auto it_arm = arm.find(i);
+//             X.col(i) << it_cam->second - pbar;
+//             Y.col(i) << it_arm->second - qbar;
+//         }
+//         // std::cout<<"X: \n";
+//         // std::cout<<X<<std::endl;
+//         // std::cout<<"Y: \n";
+//         // std::cout<<Y<<std::endl;
+//         // calc covariance matrix
+//         Eigen::Matrix3f S(3, 3);
+//         S = X * Y.transpose();
 
-        // calc SVD
-        Eigen::JacobiSVD<Eigen::Matrix3f> svd(S, Eigen::ComputeFullU | Eigen::ComputeFullV);
+//         // calc SVD
+//         Eigen::JacobiSVD<Eigen::Matrix3f> svd(S, Eigen::ComputeFullU | Eigen::ComputeFullV);
 
-        // calc R
-        Eigen::Matrix3f U = svd.matrixU();
-        Eigen::Matrix3f V = svd.matrixV();
-        float det = (V*U.transpose()).determinant();
-        Eigen::Vector3f vec;
-        vec << 1, 1, det; 
-        Eigen::Matrix3f mid = vec.asDiagonal();
-        R = V * mid * U.transpose();
+//         // calc R
+//         Eigen::Matrix3f U = svd.matrixU();
+//         Eigen::Matrix3f V = svd.matrixV();
+//         float det = (V*U.transpose()).determinant();
+//         Eigen::Vector3f vec;
+//         vec << 1, 1, det; 
+//         Eigen::Matrix3f mid = vec.asDiagonal();
+//         R = V * mid * U.transpose();
 
-        // calc t
-        t = qbar - R * pbar;
+//         // calc t
+//         t = qbar - R * pbar;
 
-        // std::cout<<"R:"<<R<<std::endl;
-        // std::cout<<"t:"<<t<<std::endl;
+//         // std::cout<<"R:"<<R<<std::endl;
+//         // std::cout<<"t:"<<t<<std::endl;
 
-        std::vector<float> R_param;
-        R_param.push_back(R(0,0));
-        R_param.push_back(R(0,1));
-        R_param.push_back(R(0,2));
-        R_param.push_back(R(1,0));
-        R_param.push_back(R(1,1));
-        R_param.push_back(R(1,2));
-        R_param.push_back(R(2,0));
-        R_param.push_back(R(2,1));
-        R_param.push_back(R(2,2));
+//         std::vector<float> R_param;
+//         R_param.push_back(R(0,0));
+//         R_param.push_back(R(0,1));
+//         R_param.push_back(R(0,2));
+//         R_param.push_back(R(1,0));
+//         R_param.push_back(R(1,1));
+//         R_param.push_back(R(1,2));
+//         R_param.push_back(R(2,0));
+//         R_param.push_back(R(2,1));
+//         R_param.push_back(R(2,2));
 
-        std::vector<float> t_param;
-        t_param.push_back(t(0));
-        t_param.push_back(t(1));
-        t_param.push_back(t(2)); 
+//         std::vector<float> t_param;
+//         t_param.push_back(t(0));
+//         t_param.push_back(t(1));
+//         t_param.push_back(t(2)); 
 
-        n.setParam("R", R_param);
-        n.setParam("t", t_param);
+//         n.setParam("R", R_param);
+//         n.setParam("t", t_param);
 
-        ROS_INFO("Extrinsics calculated!");
+//         ROS_INFO("Extrinsics calculated!");
 
-        return true;
-    } else return false;
+//         return true;
+//     } else return false;
 
-}
+// }
 
 float Controller::get_depth_scale(rs2::device dev)
 {
