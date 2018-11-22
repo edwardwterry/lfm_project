@@ -1,0 +1,7 @@
+<launch>
+    <node name="calib" pkg="calib" type="calib_node" output="screen"/>
+
+    <include file="$(find apriltags2_ros)/launch/calib_detection.launch"/>
+    <arg name="extrinsics_file" default="$(find calib)/extrinsics.yaml"/>   
+    <rosparam command="load" file="$(arg extrinsics_file)"/>
+</launch>

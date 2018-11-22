@@ -279,13 +279,13 @@ void Controller::updateState(){
         case ArmState::IDLE:
             arm_pos_desired = home_pos;
             break;
-        case ArmState::END_OF_SEQ:
+        case ArmState::END_OF_SEQ:{
             arm_state == ArmState::IDLE;
             arm_pos_sequence.clear();
             std_msgs::Bool msg;
             msg.data = true;
             ready_for_action_pub.publish(msg);
-            break;
+            break;}
         default:
             if (Controller::checkReached()){
                 arm_state++;
@@ -293,6 +293,7 @@ void Controller::updateState(){
                 std::cout<<arm_pos_desired<<std::endl;
                 ros::Duration(0.2).sleep();
             }
+            break;
     }
 }
 

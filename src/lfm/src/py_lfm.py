@@ -68,6 +68,10 @@ def get_base_orientation():
     anchor_tag_id = rospy.get_param('blocks')[0]['id']
     return rot[anchor_tag_id]
 
+def get_base_position():
+    anchor_tag_id = rospy.get_param('blocks')[0]['id']
+    return pos[anchor_tag_id]
+
 def get_relative_rotations():
     anchor_rot = get_base_orientation()
     for tag in tags_in_scene:
@@ -75,11 +79,17 @@ def get_relative_rotations():
 
     print rot_rel
 
+def transform_arm_to_local(arm):
+    return 
+
+def calc_reward():
+    return
+
 def send_action():
     msg = Action()
     msg.target_tag = 19
     msg.dist = 5.0
-    msg.angle = direction_map['N']
+    msg.angle = direction_map['N'] + rot_rel[msg.target_tag]
     action_pub.publish(msg)
 
 def run():

@@ -350,6 +350,12 @@ bond_DIR:PATH=/opt/ros/kinetic/share/bond/cmake
 bondcpp_DIR:PATH=/opt/ros/kinetic/share/bondcpp/cmake
 
 //Value Computed by CMake
+calib_BINARY_DIR:STATIC=/home/et/Documents/lfm_ws/build/calib
+
+//Value Computed by CMake
+calib_SOURCE_DIR:STATIC=/home/et/Documents/lfm_ws/src/calib
+
+//Value Computed by CMake
 camera_calibration_parsers_BINARY_DIR:STATIC=/home/et/Documents/lfm_ws/build/image_common/camera_calibration_parsers
 
 //The directory containing a CMake configuration file for camera_calibration_parsers.
@@ -744,7 +750,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=16
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=17
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP

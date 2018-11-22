@@ -1,2 +1,2 @@
-apriltags2_ros/apriltags2:apriltags2_ros/apriltags2_ros:image_common/camera_calibration_parsers:image_common/camera_info_manager:image_common/image_common:image_common/image_transport:image_common/polled_camera:lfm:opencv_apps:swiftpro:usb_cam
+apriltags2_ros/apriltags2:apriltags2_ros/apriltags2_ros:calib:image_common/camera_calibration_parsers:image_common/camera_info_manager:image_common/image_common:image_common/image_transport:image_common/polled_camera:lfm:opencv_apps:swiftpro:usb_cam
 -DCATKIN_DEVEL_PREFIX=/home/et/Documents/lfm_ws/devel -DCMAKE_INSTALL_PREFIX=/home/et/Documents/lfm_ws/install -G Unix Makefiles
