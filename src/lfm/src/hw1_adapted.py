@@ -11,7 +11,7 @@ import math
 import random as rand
 import rospy
 from lfm.msg import Action, AprilTagDetectionArray, AprilTagDetection
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, String
 from tf.transformations import euler_from_quaternion, quaternion_inverse, quaternion_multiply
 
 # Hyperparameters and utility functions
@@ -23,6 +23,8 @@ SHIFT_LENGTH=0.05
 
 sequence_complete = False
 sequence_initiated = False
+
+np.random.seed(0)
 
 def is_within_range(val, min_lim, max_lim):
   return val <= max_lim and val >= min_lim
@@ -129,7 +131,7 @@ class Perception():
       except:
         print('Tag ', tag, ' can''t be found in end scene')
         pass
-    print delta
+    print "Tag displacement:\n", delta
     return delta # this is probably in meters
 
   def save_current_scene(self, scene_type):
@@ -141,15 +143,20 @@ class Perception():
 
 class Control():
   def __init__(self):
-    # self.action_pub = rospy.Publisher('/action_request', Action, queue_size=1)
+    pass
+    self.action_pub = rospy.Publisher('/action_request', Action, queue_size = 100)
     self.direction_map = {'N': 0.0, 'W': 90.0, 'S': 180.0, 'E': 270.0}
 
-  def send_action(self, target_tag, dist, direction):#, master_orientation, rel_to_master=False):
-    msg = Action()
-    msg.target_tag = target_tag
-    msg.dist = dist
-    msg.angle = self.direction_map[direction]# + rel_to_master*master_orientation/180.0*math.pi # assumes master_orientation is in radians
-    # self.action_pub.publish(msg)
+  def send_action(self, target_tag, dist, angle):#, master_orientation, rel_to_master=False):
+    action_msg = Action()
+    action_msg.target_tag = target_tag
+    action_msg.dist = dist
+    action_msg.angle = angle# + rel_to_master*master_orientation/180.0*math.pi # assumes master_orientation is in radians
+    while self.action_pub.get_num_connections() == 0:
+      rospy.loginfo("Waiting for subscriber to connect")
+      rospy.sleep(0.25)
+    self.action_pub.publish(action_msg)
+    print "Published action!"
 
 class Scene():
   """
@@ -166,6 +173,30 @@ class Scene():
     self._prob = {}
     self._adjacent, _joined = declare_connections(blocks)
     self.block_ids = [blocks[tag]['id'] for tag in range(len(blocks))]
+    self.direction_map = {'N': 0.0, 'W': 90.0, 'S': 180.0, 'E': 270.0}
+    self.num_actions = 6
+    self.action_count = 0
+    self.target_tags = []
+    self.dists = []
+    self.angles = []
+    self.populate_action_sequence()
+
+  def populate_action_sequence(self):
+    max_dist = 40 # mm
+    self.target_tags = np.random.choice(self.block_ids, self.num_actions)
+    self.dists = np.random.rand(self.num_actions) * max_dist
+    self.angles = np.random.choice(self.direction_map.values(), self.num_actions)
+    print self.target_tags, self.dists, self.angles
+
+  def get_next_action(self):
+    try:
+      out_1 = self.target_tags[self.action_count]
+      out_2 = self.dists[self.action_count]
+      out_3 = self.angles[self.action_count]
+      self.action_count = self.action_count + 1
+      return out_1, out_2, out_3
+    except:
+      pass
 
   def set_probability(self, i, j, prob):
     """
@@ -311,9 +342,7 @@ def run():
   seq_complete_sub = rospy.Subscriber('/sequence_complete', Bool, seqCompleteClbk)
   seq_initiated_sub = rospy.Subscriber('/sequence_initiated', Bool, seqInitiatedClbk)
   master_orientation = perc.get_base_orientation()
-  # global start_scene, end_scene
-  # start_scene = perc.capture_scene()
-  # end_scene = start_scene
+  ready_for_next_action = True
 
   # Initialize connection probabilities to 0.5 (prior):
   for block_id in scene.block_ids:
@@ -321,55 +350,64 @@ def run():
       scene.set_probability(block_id, block_id_adj, 0.5)
 
   # # Terminate when probability values have converged
-  while not scene.is_converged():
-    # entropy = scene.get_link_entropy()
-    # print entropy
-    # averageEntropy.append(np.mean(entropy.values()))
-    # global start_scene, end_scene
-    if sequence_initiated:
-      print "Capturing start scene..."
-      perc.save_current_scene("start")
-      sequence_initiated = False
-    # target_tag, dist, direction = scene.choose_action(start_scene)
-    # actionSequence.append([target_tag, dist, direction])
-    # control.send_action(target_tag, dist, direction) #, master_orientation, rot_rel_to_master)
-    if sequence_complete:
-      count_iter += 1
-      sequence_complete = False
-      print "Capturing end scene..."
-      perc.save_current_scene("end")
-      delta = perc.calculate_displacement()
-      scene.update(delta)
+  while not rospy.is_shutdown():
+    while not scene.is_converged() or count_iter < scene.action_count:
+      if ready_for_next_action:
+        target_tag, dist, angle = scene.get_next_action()
+        actionSequence.append([target_tag, dist, angle])
+        control.send_action(target_tag, dist, angle)
+        ready_for_next_action = False
 
-  # # Print the connections found
-  # for link, p in linked_blocks._prob.items():
-  #   if p > THRESHOLD_CONNECTION_PROB:
-  #     print('Link found between block {} and {}'.format(link[0], link[1]))
+      #   entropy = scene.get_link_entropy()
+      #   print entropy
+      #   averageEntropy.append(np.mean(entropy.values()))
 
-  # print('Action Sequence executed: ', actionSequence)
-  # print('Converged after {} iterations, final Entropy: {}'.format(count_iter, averageEntropy[-1]))
+      if sequence_initiated:
+        print "Capturing start scene..."
+        perc.save_current_scene("start")
+        print "Captured start scene"
+        sequence_initiated = False
 
-def main():
-  # ready_for_action_sub = rospy.Subscriber('/ready_for_action', Bool, readyForActionClbk)
-  rospy.init_node('hw1_adapted', anonymous=True)
-  rate = rospy.Rate(10)
-  # global ready_for_action
-  # before_snapshot = capture_scene()
-  # after_snapshot = before_snapshot
-  run()
-  # while not rospy.is_shutdown():
-  #   run()
-  #     # if (ready_for_action):
-  #     #     after_snapshot = before_snapshot
-  #     #     before_snapshot = capture_scene()
-  #     #     update_scene_params()
-  #     #     send_action()
-  #     #     ready_for_action = False
-  #     rate.sleep()
+      if sequence_complete:
+        count_iter += 1
+        sequence_complete = False
+        ready_for_next_action = True
+        print "Capturing end scene..."
+        perc.save_current_scene("end")
+        print "Captured end scene"
+        delta = perc.calculate_displacement()
+        # scene.update(delta)
+
+    # # Print the connections found
+    # for link, p in linked_blocks._prob.items():
+    #   if p > THRESHOLD_CONNECTION_PROB:
+    #     print('Link found between block {} and {}'.format(link[0], link[1]))
+
+    # print('Action Sequence executed: ', actionSequence)
+    # print('Converged after {} iterations, final Entropy: {}'.format(count_iter, averageEntropy[-1]))
+
+  # def main():
+    # ready_for_action_sub = rospy.Subscriber('/ready_for_action', Bool, readyForActionClbk)
+
+    # global ready_for_action
+    # before_snapshot = capture_scene()
+    # after_snapshot = before_snapshot
+    # while not rospy.is_shutdown():
+      # run()
+    #   run()
+    #     # if (ready_for_action):
+    #     #     after_snapshot = before_snapshot
+    #     #     before_snapshot = capture_scene()
+    #     #     update_scene_params()
+    #     #     send_action()
+    #     #     ready_for_action = False
+    #     rate.sleep()
 
 if __name__ == '__main__':
+    rospy.init_node('hw1_adapted', anonymous=True)
+    rate = rospy.Rate(10)
     try:
-        main()
+        run()
     except rospy.ROSInterruptException:
         pass
 

@@ -36,8 +36,8 @@ class Controller {
         // ros::Subscriber tag_centers_sub = n.subscribe("/apriltags2_ros_continuous_node/tag_pixel_centers", 1000, &Controller::processTagCentersClbk, this);
         ros::Subscriber tag_centers_3d_sub = n.subscribe("/tag_detections", 1000, &Controller::processTag3dCentersClbk, this);
         // ros::Subscriber pick_tag_sub = n.subscribe("/pick_tag", 1, &Controller::pickTagClbk, this);
-	    ros::Subscriber status_sub = n.subscribe("/SwiftproState_topic", 1, &Controller::statusClbk, this);
-	    ros::Subscriber action_sub = n.subscribe("/action_request", 1, &Controller::processActionClbk, this);
+	    ros::Subscriber status_sub = n.subscribe("/SwiftproState_topic", 1000, &Controller::statusClbk, this);
+	    ros::Subscriber action_sub = n.subscribe("/action_request", 1000, &Controller::processActionClbk, this);
 
         ros::Publisher arm_pos_cmd_pub = n.advertise<swiftpro::position>("/position_write_topic", 1);
         ros::Publisher seq_initiated_pub = n.advertise<std_msgs::Bool>("/sequence_initiated", 1);
@@ -347,6 +347,7 @@ Eigen::Vector3f Controller::transformCamToArm(const Eigen::Vector3f& cam){
 }
 
 void Controller::processActionClbk(const lfm::Action& msg){
+    std::cout<<"Received action request!"<<std::endl;
     Eigen::Vector3f hover_start, pick, release, hover_end, clear; 
     int tag_id = msg.target_tag;
     Eigen::Vector3f coords = Controller::getTagCoordsMillimeters(tag_id);
