@@ -40,7 +40,7 @@ class Controller {
 	    ros::Subscriber action_sub = n.subscribe("/action_request", 1, &Controller::processActionClbk, this);
 
         ros::Publisher arm_pos_cmd_pub = n.advertise<swiftpro::position>("/position_write_topic", 1);
-        ros::Publisher ready_for_action_pub = n.advertise<std_msgs::Bool>("/ready_for_action", 1);
+        ros::Publisher seq_complete_pub = n.advertise<std_msgs::Bool>("/sequence_complete", 1);
         ros::Publisher pump_pub = n.advertise<swiftpro::status>("/pump_topic", 1);
         // ros::Publisher tag_centers_arm_pub = n.advertise<geometry_msgs::PoseStamped>("/tag_centers_arm", 1);
         // std::map<int, Eigen::Vector2f> tag_centers_pix_cam;
@@ -57,9 +57,9 @@ class Controller {
         std::vector<Eigen::Vector3f> arm_pos_sequence;
 
         float pos_error_tolerance = 1.0; // mm
-        float standoff_height = 100.0; // mm 40.0
+        float standoff_height = 40.0; // mm 40.0
         // float clear_height = 200.0; // mm
-        float pick_height = 70.0; // mm 1.0
+        float pick_height = 1.0; // mm 1.0
 
         Eigen::Vector3f home_pos = Eigen::Vector3f(10.0, -150.0, 100.0);
 
@@ -159,7 +159,7 @@ void Controller::run(){
     ros::Publisher info_pub = n.advertise<sensor_msgs::CameraInfo>("/camera/camera_info", 1);
     info_msg = generateCalibrationData();
     rs2_intr = createRs2Intrinsics();
-    ros::Rate loop_rate = 4;
+    ros::Rate loop_rate = 10;
     // tag_centers_3d_arm = generateTagsInArmCoords();
 
     // bool extrinsics_calculated = false;
@@ -225,7 +225,7 @@ void Controller::run(){
         updateState();
         sendPosCmd();
         sendPumpCmd();
-        std::cout<<"z desired: "<<arm_pos_desired[2]<<std::endl;;
+        // std::cout<<"z desired: "<<arm_pos_desired[2]<<std::endl;;
         
         ros::spinOnce();
         loop_rate.sleep();
@@ -308,9 +308,9 @@ void Controller::updateState(){
         case ArmState::END_OF_SEQ:{
             arm_state == ArmState::IDLE;
             arm_pos_sequence.clear();
-            // std_msgs::Bool msg;
-            // msg.data = true;
-            // ready_for_action_pub.publish(msg);
+            std_msgs::Bool msg;
+            msg.data = true;
+            seq_complete_pub.publish(msg);
             break;}
         default:
             if (Controller::checkReached()){
@@ -318,7 +318,7 @@ void Controller::updateState(){
                 arm_pos_desired = arm_pos_sequence[arm_state];
                 std::cout<<"arm state: "<<arm_state<<std::endl;
                 // std::cout<<arm_pos_desired<<std::endl;
-                ros::Duration(1.5).sleep();
+                ros::Duration(0.05).sleep();
             }
             break;
     }
