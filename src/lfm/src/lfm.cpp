@@ -58,7 +58,6 @@ class Controller {
 
         float pos_error_tolerance = 1.0; // mm
         float standoff_height = 40.0; // mm 40.0
-        // float clear_height = 200.0; // mm
         float pick_height = 1.0; // mm 1.0
 
         Eigen::Vector3f home_pos = Eigen::Vector3f(10.0, -150.0, 100.0);
@@ -133,20 +132,6 @@ sensor_msgs::CameraInfo Controller::generateCalibrationData()
 
   return ci;
 }
-
-// std::map<int, Eigen::Vector3f> Controller::generateTagsInArmCoords(){
-//     std::map<int, Eigen::Vector3f> coords;
-//     coords.insert(std::make_pair(0, Eigen::Vector3f(0.2435,	-0.0655, 0.)));
-//     coords.insert(std::make_pair(1, Eigen::Vector3f(0.2435,	0., 0.)));
-//     coords.insert(std::make_pair(2, Eigen::Vector3f(0.2435,	0.0645, 0.)));
-//     coords.insert(std::make_pair(3, Eigen::Vector3f(0.1705,	-0.0655, 0.)));
-//     coords.insert(std::make_pair(4, Eigen::Vector3f(0.1705,	0., 0.)));
-//     coords.insert(std::make_pair(5, Eigen::Vector3f(0.1705,	0.0645, 0.)));
-//     coords.insert(std::make_pair(6, Eigen::Vector3f(0.0965,	-0.0655, 0.)));
-//     coords.insert(std::make_pair(7, Eigen::Vector3f(0.0965,	0., 0.)));
-//     coords.insert(std::make_pair(8, Eigen::Vector3f(0.0965,	0.0645, 0.)));
-//     return coords;
-// }
 
 void Controller::run(){
     rs2::pipeline_profile profile = pipe.start();
@@ -232,21 +217,6 @@ void Controller::run(){
     }
 }
 
-// void Controller::processTagCentersClbk(const std_msgs::Float32MultiArray& msg){
-//     // std::cout<<"here"<<std::endl;
-//     if (msg.layout.dim[0].size == 27){
-//         for (int i = 0; i < msg.layout.dim[0].size; i = i+3){
-//             auto it = tag_centers_pix_cam.find(static_cast<int>(msg.data[i]));
-//             if (it != tag_centers_pix_cam.end()){
-//                 it->second[0] = msg.data[i+1];
-//                 it->second[1] = msg.data[i+2];
-//             } else {
-//                 tag_centers_pix_cam.insert(std::make_pair<int, Eigen::Vector2f>(static_cast<int>(msg.data[i]), Eigen::Vector2f(msg.data[i+1], msg.data[i+2])));
-//             }
-//         }
-//     }
-// }
-
 void Controller::getExtrinsicParams(){
     std::vector<float> R_param, t_param;
     n.getParam("R", R_param);
@@ -285,39 +255,25 @@ void Controller::processTag3dCentersClbk(const lfm::AprilTagDetectionArray& msg)
     }
 }
 
-// void Controller::pickTagClbk(const std_msgs::Int32& msg){
-//     int tag_id = msg.data;
-//     std::cout<<"tag_id: "<<tag_id<<std::endl;
-//     if (tag_centers_3d_cam.find(tag_id) != tag_centers_3d_cam.end()){
-//         arm_pos_desired = Controller::transformCamToArm(tag_centers_3d_cam.find(tag_id)->second); // look up tag location
-//         // arm_pos_desired = tag_centers_3d_cam.find(tag_id)->second; // look up tag location
-//         arm_pos_desired[2] = 10.0f; // mm
-//         swiftpro::position pos;
-//         pos.x = arm_pos_desired[0] * 1000.0f; // mm
-//         pos.y = arm_pos_desired[1] * 1000.0f; // mm
-//         pos.z = arm_pos_desired[2];
-//         arm_pos_cmd_pub.publish(pos); // send to robot
-//     }
-// }
-
 void Controller::updateState(){
+    std::cout<<"arm_state: "<<arm_state<<std::endl;
     switch(arm_state){
         case ArmState::IDLE:
             arm_pos_desired = home_pos;
             break;
-        case ArmState::END_OF_SEQ:{
-            arm_state == ArmState::IDLE;
+        case ArmState::END_OF_SEQ:
+            arm_state = ArmState::IDLE;
             arm_pos_sequence.clear();
-            std_msgs::Bool msg;
-            msg.data = true;
-            seq_complete_pub.publish(msg);
-            break;}
+            {
+                std_msgs::Bool msg;
+                msg.data = true;
+                seq_complete_pub.publish(msg);
+            }
+            break;
         default:
             if (Controller::checkReached()){
                 arm_state++;
                 arm_pos_desired = arm_pos_sequence[arm_state];
-                std::cout<<"arm state: "<<arm_state<<std::endl;
-                // std::cout<<arm_pos_desired<<std::endl;
                 ros::Duration(0.05).sleep();
             }
             break;
@@ -363,7 +319,7 @@ void Controller::statusClbk(const swiftpro::SwiftproState& msg){
 bool Controller::checkReached(){
     for (int i = 0; i < 3; i++){
         if (abs(arm_pos_desired[i] - arm_pos_actual[i]) > pos_error_tolerance){
-            std::cout<<"still travelling..."<<std::endl;
+            // std::cout<<"still travelling..."<<std::endl;
             return false;
         }
     }
@@ -403,7 +359,7 @@ void Controller::processActionClbk(const lfm::Action& msg){
     clear = home_pos;
     arm_pos_sequence = {hover_start, pick, release, hover_end, clear};
     for (auto pos : arm_pos_sequence){
-        std::cout<<pos<<std::endl;
+        // std::cout<<pos<<std::endl;
         if (!Controller::inBounds(pos)){
             std::cout<<"Illegal move requested. Try again!"<<std::endl;
             arm_state = ArmState::IDLE;
