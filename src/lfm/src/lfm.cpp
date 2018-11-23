@@ -61,7 +61,7 @@ class Controller {
         float standoff_height = 40.0; // mm 40.0
         float pick_height = 1.0; // mm 1.0
 
-        Eigen::Vector3f home_pos = Eigen::Vector3f(10.0, -150.0, 100.0);
+        Eigen::Vector3f home_pos = Eigen::Vector3f(55.0, -170.0, 40.0);
 
         std::vector<float> R_limits {100.0, 260.0};
         std::vector<float> th_limits {-45.0, 45.0};
@@ -145,7 +145,7 @@ void Controller::run(){
     ros::Publisher info_pub = n.advertise<sensor_msgs::CameraInfo>("/camera/camera_info", 1);
     info_msg = generateCalibrationData();
     rs2_intr = createRs2Intrinsics();
-    ros::Rate loop_rate = 10;
+    ros::Rate loop_rate = 20;
     // tag_centers_3d_arm = generateTagsInArmCoords();
 
     // bool extrinsics_calculated = false;

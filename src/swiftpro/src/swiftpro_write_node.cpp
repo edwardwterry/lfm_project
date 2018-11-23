@@ -38,7 +38,7 @@ void position_write_callback(const swiftpro::position& msg)
 	sprintf(x, "%.2f", msg.x);
 	sprintf(y, "%.2f", msg.y);
 	sprintf(z, "%.2f", msg.z);
-	Gcode = (std::string)"G0 X" + x + " Y" + y + " Z" + z + " F10000" + "\r\n";
+	Gcode = (std::string)"G0 X" + x + " Y" + y + " Z" + z + " F25000" + "\r\n";
 	// std::string Gcode1 = (std::string)"G0 X" + x;
 	// std::string Gcode2 = (std::string)"G0 Y" + y;
 	// std::string Gcode3 = (std::string)"G0 Z" + z;

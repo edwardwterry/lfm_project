@@ -143,7 +143,7 @@ class Perception():
 
 class Control():
   def __init__(self):
-    pass
+    # pass
     self.action_pub = rospy.Publisher('/action_request', Action, queue_size = 100)
     self.direction_map = {'N': 0.0, 'W': 90.0, 'S': 180.0, 'E': 270.0}
 
@@ -157,6 +157,14 @@ class Control():
       rospy.sleep(0.25)
     self.action_pub.publish(action_msg)
     print "Published action!"
+
+# class Reps():
+#   def __init__(self):
+#     pass
+#     self.goal_locations = {'pt': {(1, -1), (1, 0), (1, 1)}, 'line': {(1, 0)}, 'c1': {(1, 0)}, 'c2': {(2, 0)}, 'c3': {(3, 0)}}
+  
+#   def calc_goal_pos(self, config):
+
 
 class Scene():
   """
@@ -316,16 +324,6 @@ def seqInitiatedClbk(msg):
   sequence_initiated = True
 
 def run():
-  """
-  TODO: Complete the implementation for this function
-
-  Parameters
-  ----------
-  handles : V-REP data structure
-  block_mappings : V-REP data structure
-  use_random_policy : Pass in this flag in commandline args to select
-    random actions at each iteration
-  """
   actionSequence = []
   averageEntropy = []
   count_iter = 0
@@ -351,7 +349,7 @@ def run():
 
   # # Terminate when probability values have converged
   while not rospy.is_shutdown():
-    while not scene.is_converged() or count_iter < scene.action_count:
+    while not scene.is_converged() and count_iter <= scene.action_count:
       if ready_for_next_action:
         target_tag, dist, angle = scene.get_next_action()
         actionSequence.append([target_tag, dist, angle])
@@ -385,23 +383,6 @@ def run():
 
     # print('Action Sequence executed: ', actionSequence)
     # print('Converged after {} iterations, final Entropy: {}'.format(count_iter, averageEntropy[-1]))
-
-  # def main():
-    # ready_for_action_sub = rospy.Subscriber('/ready_for_action', Bool, readyForActionClbk)
-
-    # global ready_for_action
-    # before_snapshot = capture_scene()
-    # after_snapshot = before_snapshot
-    # while not rospy.is_shutdown():
-      # run()
-    #   run()
-    #     # if (ready_for_action):
-    #     #     after_snapshot = before_snapshot
-    #     #     before_snapshot = capture_scene()
-    #     #     update_scene_params()
-    #     #     send_action()
-    #     #     ready_for_action = False
-    #     rate.sleep()
 
 if __name__ == '__main__':
     rospy.init_node('hw1_adapted', anonymous=True)
