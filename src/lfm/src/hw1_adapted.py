@@ -2,6 +2,7 @@
 
 import os, sys
 import time
+import copy
 
 import argparse
 import numpy as np
@@ -21,6 +22,7 @@ THRESHOLD_UPPER_BOUND = 0.9
 SHIFT_LENGTH=0.05
 
 sequence_complete = False
+sequence_initiated = False
 
 def is_within_range(val, min_lim, max_lim):
   return val <= max_lim and val >= min_lim
@@ -71,7 +73,8 @@ class Perception():
     self.displacement = {}   
     self.R = np.array([rospy.get_param('R')]).reshape(3,3)
     self.t = np.array([rospy.get_param('t')]).reshape(3,1)
-    print self.R, self.t
+    self.start_scene = {}
+    self.end_scene = {}
 
   def detectionsClbk(self, msg):
     detections_raw = msg.detections
@@ -82,7 +85,6 @@ class Perception():
         _pos_vector = np.array([_pos.x, _pos.y, _pos.z])
         self.pos[indices_raw[i]] = self.transform_cam_to_arm(_pos_vector) # assumes that R and t are populated, converts m to mm
         self.rot[indices_raw[i]] = detections_raw[i].pose.pose.pose.orientation
-    # print self.pos[16]
 
   def capture_scene(self):
       return self.pos, self.rot
@@ -115,20 +117,31 @@ class Perception():
       H = np.array([[1, 0, 0, loc[0]],[0, cos(th), sin(th), loc[1]],[0, -sin(th), cos(th), loc[2]],[0,0,0,1]])
       return np.matmul(H, arm) # TBA dimensions
 
-  def calculate_displacement(self, start, end):
+  def calculate_displacement(self):
     delta = {}
-    for tag in start:
+    for tag in self.start_scene: # 0th element contains position data
       try: 
-        if tag in end:
-          delta[tag] = math.sqrt((end[tag].x - start[tag].x) ** 2 + (end[tag].y - start[tag].y) ** 2)
+        if tag in self.end_scene:
+          print self.start_scene[tag][0], self.end_scene[tag][0]
+          print self.start_scene[tag][1], self.end_scene[tag][1]
+          delta[tag] = math.sqrt((self.end_scene[tag][0] - self.start_scene[tag][0]) ** 2 \
+                                    + (self.end_scene[tag][1] - self.start_scene[tag][1]) ** 2)
       except:
         print('Tag ', tag, ' can''t be found in end scene')
         pass
+    print delta
     return delta # this is probably in meters
+
+  def save_current_scene(self, scene_type):
+    if scene_type == "start":
+      # https://stackoverflow.com/questions/11941817/how-to-avoid-runtimeerror-dictionary-changed-size-during-iteration-error
+      self.start_scene = { k : v for k,v in self.pos.iteritems() if v.any()}
+    elif scene_type == "end":
+      self.end_scene = { k : v for k,v in self.pos.iteritems() if v.any()}
 
 class Control():
   def __init__(self):
-    self.action_pub = rospy.Publisher('/action_request', Action, queue_size=1)
+    # self.action_pub = rospy.Publisher('/action_request', Action, queue_size=1)
     self.direction_map = {'N': 0.0, 'W': 90.0, 'S': 180.0, 'E': 270.0}
 
   def send_action(self, target_tag, dist, direction):#, master_orientation, rel_to_master=False):
@@ -136,7 +149,7 @@ class Control():
     msg.target_tag = target_tag
     msg.dist = dist
     msg.angle = self.direction_map[direction]# + rel_to_master*master_orientation/180.0*math.pi # assumes master_orientation is in radians
-    self.action_pub.publish(msg)
+    # self.action_pub.publish(msg)
 
 class Scene():
   """
@@ -267,6 +280,10 @@ def seqCompleteClbk(msg):
   global sequence_complete
   sequence_complete = True
 
+def seqInitiatedClbk(msg):
+  global sequence_initiated
+  sequence_initiated = True
+
 def run():
   """
   TODO: Complete the implementation for this function
@@ -284,7 +301,7 @@ def run():
 
   # rot_rel_to_master = False
 
-  global sequence_complete
+  global sequence_complete, sequence_initiated
 
   blocks = rospy.get_param('blocks')
   num_blocks = len(blocks)
@@ -292,6 +309,11 @@ def run():
   control = Control()
   perc = Perception(blocks[0]['id'])
   seq_complete_sub = rospy.Subscriber('/sequence_complete', Bool, seqCompleteClbk)
+  seq_initiated_sub = rospy.Subscriber('/sequence_initiated', Bool, seqInitiatedClbk)
+  master_orientation = perc.get_base_orientation()
+  # global start_scene, end_scene
+  # start_scene = perc.capture_scene()
+  # end_scene = start_scene
 
   # Initialize connection probabilities to 0.5 (prior):
   for block_id in scene.block_ids:
@@ -303,17 +325,20 @@ def run():
     # entropy = scene.get_link_entropy()
     # print entropy
     # averageEntropy.append(np.mean(entropy.values()))
-
-    start_scene = perc.capture_scene()
-    master_orientation = perc.get_base_orientation()
+    # global start_scene, end_scene
+    if sequence_initiated:
+      print "Capturing start scene..."
+      perc.save_current_scene("start")
+      sequence_initiated = False
     # target_tag, dist, direction = scene.choose_action(start_scene)
     # actionSequence.append([target_tag, dist, direction])
     # control.send_action(target_tag, dist, direction) #, master_orientation, rot_rel_to_master)
-    if (sequence_complete):
+    if sequence_complete:
       count_iter += 1
       sequence_complete = False
-      end_scene = perc.capture_scene()
-      delta = perc.calculate_displacement(start_scene, end_scene)
+      print "Capturing end scene..."
+      perc.save_current_scene("end")
+      delta = perc.calculate_displacement()
       scene.update(delta)
 
   # # Print the connections found
@@ -323,48 +348,6 @@ def run():
 
   # print('Action Sequence executed: ', actionSequence)
   # print('Converged after {} iterations, final Entropy: {}'.format(count_iter, averageEntropy[-1]))
-
-# def main(args):
-#   """
-#   DO NOT MODIFY!
-
-#   Utility function sets up the simulator.
-#   """
-
-#   #Start simulation and enter sync mode
-#   vrep.simxStartSimulation(clientID,vrep.simx_opmode_oneshot)        
-
-#   seed = int(np.random.rand() * 10000)
-#   ObjectDesc,JointDesc,BlockIDs=vu.GenConGridObjDesc(seed)#GenBasicDoorObjDesc()
-#   ObjectHandles=vu.GenObjects(clientID,ObjectDesc)
-#   JointHandles=vu.GenJoints(clientID,ObjectHandles,JointDesc)
-#   RobotHandles=vu.GetRobotHandles(clientID)
-
-#   handles = [ObjectHandles, RobotHandles, JointHandles]
-
-#   startTime=time.time()
-
-#   vu.SetDesJointPos(clientID,RobotHandles,[0,0,0.5,0,0,0,0.045,0.045]) 
-#   vu.StepSim(clientID,5)
-
-#   run(handles, BlockIDs, use_random_policy=args.random)
-
-#   RobotVision=vu.GetRobotVision(clientID,RobotHandles)
-
-#   print('Simulation took: {} (s)'.format(time.time()-startTime))
-
-#   #Finish up    
-#   vrep.simxStopSimulation(clientID,vrep.simx_opmode_blocking)
-#   vrep.simxFinish(clientID)
-
-# if __name__ == "__main__":
-#   parser = argparse.ArgumentParser()
-#   parser.add_argument('--random', help='Use this flag to run random policy', dest='random', action='store_true', default=False)
-#   parser.add_argument('--seed', type=int, default=0, help='Use this to set the random seed')
-#   args = parser.parse_args()
-#   np.random.seed(args.seed)
-#   rand.seed(args.seed)
-#   main(args)
 
 def main():
   # ready_for_action_sub = rospy.Subscriber('/ready_for_action', Bool, readyForActionClbk)

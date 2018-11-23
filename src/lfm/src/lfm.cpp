@@ -40,6 +40,7 @@ class Controller {
 	    ros::Subscriber action_sub = n.subscribe("/action_request", 1, &Controller::processActionClbk, this);
 
         ros::Publisher arm_pos_cmd_pub = n.advertise<swiftpro::position>("/position_write_topic", 1);
+        ros::Publisher seq_initiated_pub = n.advertise<std_msgs::Bool>("/sequence_initiated", 1);
         ros::Publisher seq_complete_pub = n.advertise<std_msgs::Bool>("/sequence_complete", 1);
         ros::Publisher pump_pub = n.advertise<swiftpro::status>("/pump_topic", 1);
         // ros::Publisher tag_centers_arm_pub = n.advertise<geometry_msgs::PoseStamped>("/tag_centers_arm", 1);
@@ -262,12 +263,14 @@ void Controller::updateState(){
             arm_pos_desired = home_pos;
             break;
         case ArmState::END_OF_SEQ:
-            arm_state = ArmState::IDLE;
-            arm_pos_sequence.clear();
             {
-                std_msgs::Bool msg;
-                msg.data = true;
-                seq_complete_pub.publish(msg);
+                if (Controller::checkReached()){
+                    arm_state = ArmState::IDLE;
+                    arm_pos_sequence.clear();
+                    std_msgs::Bool msg;
+                    msg.data = true;
+                    seq_complete_pub.publish(msg);
+                }
             }
             break;
         default:
@@ -369,7 +372,9 @@ void Controller::processActionClbk(const lfm::Action& msg){
     }
     arm_state = ArmState::HOVER_START; // if all clear, move to the first position!
     arm_pos_desired = arm_pos_sequence[arm_state];
-    // tag_centers_arm_pub.publish(/*TODO*/);
+    std_msgs::Bool init_msg;
+    init_msg.data = true;
+    seq_initiated_pub.publish(init_msg);
 }
 
 Eigen::Vector3f Controller::getTagCoordsMillimeters(const int& tag_id){
