@@ -256,7 +256,7 @@ void Controller::processTag3dCentersClbk(const lfm::AprilTagDetectionArray& msg)
 }
 
 void Controller::updateState(){
-    std::cout<<"arm_state: "<<arm_state<<std::endl;
+    // std::cout<<"arm_state: "<<arm_state<<std::endl;
     switch(arm_state){
         case ArmState::IDLE:
             arm_pos_desired = home_pos;

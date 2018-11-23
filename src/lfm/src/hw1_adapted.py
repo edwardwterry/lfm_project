@@ -10,6 +10,7 @@ import math
 import random as rand
 import rospy
 from lfm.msg import Action, AprilTagDetectionArray, AprilTagDetection
+from std_msgs.msg import Bool
 from tf.transformations import euler_from_quaternion, quaternion_inverse, quaternion_multiply
 
 # Hyperparameters and utility functions
@@ -39,23 +40,22 @@ def declare_connections(blocks):
   joined = {}
   adjacent = {}
   id_list = [blocks[tag]['id'] for tag in range(len(blocks))]
-
   directions = {'N': (-1, 0), 'W': (0, -1), 'S': (1, 0), 'E': (0, 1)} # delta(r, c)
-  for id in id_list:
+  for entry in range(len(id_list)):
     block_joined = []
     block_adjacent = []
     for dir in directions:
-      coord = (blocks[id]['row'], blocks[id]['col'])
+      coord = (blocks[entry]['row'], blocks[entry]['col'])
       delta = directions[dir]
-      for id_inner in id_list:
-        if ((blocks[id_inner]['row'] == coord[0] + delta[0]) and \
-            (blocks[id_inner]['col'] == coord[1] + delta[1])):
-          block_adjacent.append(id_inner)
-          if blocks[id][dir] == 1:
-            block_joined.append(id_inner)
+      for entry_inner in range(len(id_list)):
+        if ((blocks[entry_inner]['row'] == coord[0] + delta[0]) and \
+            (blocks[entry_inner]['col'] == coord[1] + delta[1])):
+          block_adjacent.append(blocks[entry_inner]['id'])
+          if blocks[entry][dir] == 1:
+            block_joined.append(blocks[entry_inner]['id'])
 
-    adjacent[id] = block_adjacent
-    joined[id] = block_joined
+    adjacent[blocks[entry]['id']] = block_adjacent
+    joined[blocks[entry]['id']] = block_joined
 
   return adjacent, joined
 
@@ -69,28 +69,39 @@ class Perception():
     self.pos_rel = {}
     self.rot_rel = {}
     self.displacement = {}   
-    self.R = rospy.get_param('R')
-    self.t = rospy.get_param('t')
+    self.R = np.array([rospy.get_param('R')]).reshape(3,3)
+    self.t = np.array([rospy.get_param('t')]).reshape(3,1)
+    print self.R, self.t
 
-  def detectionsClbk(msg):
+  def detectionsClbk(self, msg):
     detections_raw = msg.detections
     indices_raw = [detections_raw[i].id[0] for i in range(len(detections_raw))]
     self.tags_in_scene = indices_raw
     for i in range(len(indices_raw)):
-        self.pos[indices_raw[i]] = self.transform_cam_to_arm(detections_raw[i].pose.pose.pose.position)*1000.0 # assumes that R and t are populated, converts m to mm
+        _pos = detections_raw[i].pose.pose.pose.position
+        _pos_vector = np.array([_pos.x, _pos.y, _pos.z])
+        self.pos[indices_raw[i]] = self.transform_cam_to_arm(_pos_vector) # assumes that R and t are populated, converts m to mm
         self.rot[indices_raw[i]] = detections_raw[i].pose.pose.pose.orientation
+    # print self.pos[16]
 
-  def capture_scene():
+  def capture_scene(self):
       return self.pos, self.rot
 
   def transform_cam_to_arm(self, cam):
-      return self.R * cam + self.t; 
+      cam = np.array([cam]).reshape(3,1)
+      return np.matmul(self.R, cam) + self.t
 
   def get_base_orientation(self):
-      return self.rot[self.master_tag_id]
+      try:
+        return self.rot[self.master_tag_id]
+      except:
+        pass
 
   def get_base_position(self):
-      return self.pos[self.master_tag_id]
+      try:
+        return self.pos[self.master_tag_id]
+      except:
+        pass
 
   def get_relative_rotations(self):
       anchor_rot = self.get_base_orientation()
@@ -141,6 +152,7 @@ class Scene():
     self._num_blocks = len(blocks)
     self._prob = {}
     self._adjacent, _joined = declare_connections(blocks)
+    self.block_ids = [blocks[tag]['id'] for tag in range(len(blocks))]
 
   def set_probability(self, i, j, prob):
     """
@@ -197,36 +209,36 @@ class Scene():
     # TODO PAULO
     return 
 
-  # def compute_observation(self, block_id, state_pre, state_post, block_mappings):
-  #   """
-  #   DO NOT MODIFY!
+  def compute_observation(self, block_id, state_pre, state_post, block_mappings):
+    """
+    DO NOT MODIFY!
 
-  #   Computes the high level observation, whether a given block has moved (or not)
+    Computes the high level observation, whether a given block has moved (or not)
 
-  #   Parameters
-  #   ----------
-  #   block_id : Corresponds to the block that was moved
-  #   state_pre : V-REP data structure of the state before block was moved
-  #   state_post : V-REP data structure of the state before block was moved
-  #   block_mappings : V-REP data structure mapping grid definition to that of V-REP
+    Parameters
+    ----------
+    block_id : Corresponds to the block that was moved
+    state_pre : V-REP data structure of the state before block was moved
+    state_post : V-REP data structure of the state before block was moved
+    block_mappings : V-REP data structure mapping grid definition to that of V-REP
 
-  #   Returns
-  #   ----------
-  #   observation: A dictionary where the key is the block_id and value is whether
-  #   that block moved (boolean)
-  #   """
-  #   observation = {}
+    Returns
+    ----------
+    observation: A dictionary where the key is the block_id and value is whether
+    that block moved (boolean)
+    """
+    observation = {}
 
-  #   for block_id_adj in xrange(1, self._num_blocks+1):
-  #     adj_idx = int(block_mappings.flatten()[block_id_adj-1]) - 1
-  #     dist_moved = np.linalg.norm(np.array(state_post['Block'][adj_idx][:2]) - np.array(state_pre['Block'][adj_idx][:2]))
-  #     if dist_moved > THRESHOLD_MOVED:
-  #       print('When moving block {}, adjacent block {} moved {}'.format(block_id, block_id_adj, dist_moved))
-  #       observation[block_id_adj] = True
-  #     else:
-  #       print('When moving block {}, adjacent block {} was stationary, it moved {} (m)'.format(block_id, block_id_adj, dist_moved))
-  #       observation[block_id_adj] = False
-  #   return observation
+    for block_id_adj in xrange(1, self._num_blocks+1):
+      adj_idx = int(block_mappings.flatten()[block_id_adj-1]) - 1
+      dist_moved = np.linalg.norm(np.array(state_post['Block'][adj_idx][:2]) - np.array(state_pre['Block'][adj_idx][:2]))
+      if dist_moved > THRESHOLD_MOVED:
+        print('When moving block {}, adjacent block {} moved {}'.format(block_id, block_id_adj, dist_moved))
+        observation[block_id_adj] = True
+      else:
+        print('When moving block {}, adjacent block {} was stationary, it moved {} (m)'.format(block_id, block_id_adj, dist_moved))
+        observation[block_id_adj] = False
+    return observation
 
   def update(self, delta):
 
@@ -252,7 +264,8 @@ class Scene():
     return np.all(np.logical_or(prob<THRESHOLD_LOWER_BOUND, prob>THRESHOLD_UPPER_BOUND))
 
 def seqCompleteClbk(msg):
-  sequence_complete = True # global??
+  global sequence_complete
+  sequence_complete = True
 
 def run():
   """
@@ -271,6 +284,8 @@ def run():
 
   # rot_rel_to_master = False
 
+  global sequence_complete
+
   blocks = rospy.get_param('blocks')
   num_blocks = len(blocks)
   scene = Scene(blocks)
@@ -279,23 +294,23 @@ def run():
   seq_complete_sub = rospy.Subscriber('/sequence_complete', Bool, seqCompleteClbk)
 
   # Initialize connection probabilities to 0.5 (prior):
-  for block_id in xrange(0, num_blocks):
+  for block_id in scene.block_ids:
     for block_id_adj in scene.get_links(block_id):
       scene.set_probability(block_id, block_id_adj, 0.5)
 
   # # Terminate when probability values have converged
   while not scene.is_converged():
-    count_iter += 1
-    entropy = scene.get_link_entropy()
+    # entropy = scene.get_link_entropy()
     # print entropy
-    averageEntropy.append(np.mean(entropy.values()))
+    # averageEntropy.append(np.mean(entropy.values()))
 
     start_scene = perc.capture_scene()
     master_orientation = perc.get_base_orientation()
-    target_tag, dist, direction = scene.choose_action(start_scene)
-    actionSequence.append([target_tag, dist, direction])
-    control.send_action(target_tag, dist, direction) #, master_orientation, rot_rel_to_master)
+    # target_tag, dist, direction = scene.choose_action(start_scene)
+    # actionSequence.append([target_tag, dist, direction])
+    # control.send_action(target_tag, dist, direction) #, master_orientation, rot_rel_to_master)
     if (sequence_complete):
+      count_iter += 1
       sequence_complete = False
       end_scene = perc.capture_scene()
       delta = perc.calculate_displacement(start_scene, end_scene)
