@@ -189,8 +189,9 @@ class Scene():
     self._num_blocks = len(blocks)
     self._prob = {}
     self._adjacent, _joined = declare_connections(blocks)
-    self.block_ids = np.sort([blocks[tag]['id'] for tag in range(len(blocks))]) # this is the definitive mapping from matrix indices to block_ids
-    self.block_index_map = {zip([i for i in range(_self.num_blocks)], self.block_ids)}
+    self.block_ids = np.sort([blocks[tag]['id'] for tag in range(len(blocks))])
+    print self.block_ids
+    self.block_index_map = {zip([i for i in range(self._num_blocks)], [self.block_ids[i] for i in range(len(self.block_ids))])} # this is the definitive mapping from matrix indices to block_ids
     self.direction_map = {'N': 0.0, 'W': 90.0, 'S': 180.0, 'E': 270.0}
     self.num_actions = 6
     self.action_count = 0
@@ -261,20 +262,20 @@ class Scene():
     """
     return self._adjacent[i]
 
-  def get_link_entropy(self):
-    """
-    Returns a dictionary, where the key is the link and the value is
-    the entropy of the distribution of whether the link is connected.
-    """
-    entropy = {}
-    for link, prob in self._prob.iteritems():
-      # TODO:
-      raise NotImplementedError
-    return entropy
+  # def get_link_entropy(self):
+  #   """
+  #   Returns a dictionary, where the key is the link and the value is
+  #   the entropy of the distribution of whether the link is connected.
+  #   """
+  #   entropy = {}
+  #   for link, prob in self._prob.iteritems():
+  #     # TODO:
+  #     raise NotImplementedError
+  #   return entropy
 
-  def choose_action(self):
-    # TODO PAULO
-    return 
+  # def choose_action(self):
+  #   # TODO PAULO
+  #   return 
 
   # def compute_observation(self, block_id, state_pre, state_post, block_mappings):
   #   """
@@ -329,9 +330,10 @@ class Scene():
       #publish to robot next part to push
       maxEnt = np.argmax(self.E) # link with highest entropy
       highLink = np.unravel_index(maxEnt, self.E.shape) # unravel it into a position tuple
-      target_tag = np.random.choice(highLink) # pick a random part of the high link
+      target_tag = np.random.choice(self.block_index_map[highLink]) # pick a random part of the high link
       dist = self.move_distance
       angle = np.random.choice(self.direction_map) # pick a random direction
+      self.action_count = self.action_count + 1
       return target_tag, dist, angle
 
   def updateBelief(self):
@@ -355,12 +357,12 @@ class Scene():
                   if probPos > .9 or probPos < .1:
                       self.sureLink.append((i,j))
                       print('Found a link between parts: ', i,' and ', j)
-      print('Updated Links Probabilities:')
+      print('Updated Link Probabilities:')
       print(self.L)
       
   # update entropy matrix    
   def updateEntropy(self):
-      for i in range(0,self.n):
+      for i in range(0,self._num_blocks):
           for j in range(0,i):
               p = self.L[i][j]
               entropy = -p * math.log(p, 2) - (1-p) * math.log(1-p, 2)
@@ -402,37 +404,37 @@ def run():
       scene.set_probability(block_id, block_id_adj, 0.5)
 
   while not rospy.is_shutdown():
-    pass
+    # pass
     # print perc.pos.get(18)
     # perc.transform_arm_to_master(perc.pos.get(18))
-    while count_iter <= scene.action_count:
-      if ready_for_next_action:
-        # target_tag, dist, angle = scene.get_next_action() # used for demo
-        target_tag, dist, angle = scene.bestAction() # paulo
-        actionSequence.append([target_tag, dist, angle])
-        control.send_action(target_tag, dist, angle)
-        ready_for_next_action = False
+    # while count_iter <= scene.action_count:
+    if ready_for_next_action:
+      # target_tag, dist, angle = scene.get_next_action() # used for demo
+      target_tag, dist, angle = scene.bestAction() # paulo
+      actionSequence.append([target_tag, dist, angle])
+      control.send_action(target_tag, dist, angle)
+      ready_for_next_action = False
 
-      #   entropy = scene.get_link_entropy()
-      #   print entropy
-      #   averageEntropy.append(np.mean(entropy.values()))
+    #   entropy = scene.get_link_entropy()
+    #   print entropy
+    #   averageEntropy.append(np.mean(entropy.values()))
 
-      if sequence_initiated:
-        print "Capturing start scene..."
-        perc.save_current_scene("start")
-        print "Captured start scene"
-        sequence_initiated = False
+    if sequence_initiated:
+      print "Capturing start scene..."
+      perc.save_current_scene("start")
+      print "Captured start scene"
+      sequence_initiated = False
 
-      if sequence_complete:
-        count_iter += 1
-        sequence_complete = False
-        ready_for_next_action = True
-        print "Capturing end scene..."
-        perc.save_current_scene("end")
-        print "Captured end scene"
-        delta = perc.calculate_displacement()
-        scene.update_belief()
-        scene.update_entropy()
+    if sequence_complete:
+      # count_iter += 1
+      sequence_complete = False
+      ready_for_next_action = True
+      print "Capturing end scene..."
+      perc.save_current_scene("end")
+      print "Captured end scene"
+      delta = perc.calculate_displacement()
+      scene.updateBelief()
+      scene.updateEntropy()
 
     # # Print the connections found
     # for link, p in linked_blocks._prob.items():
