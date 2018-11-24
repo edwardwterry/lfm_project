@@ -89,7 +89,7 @@ class Perception():
         self.rot[indices_raw[i]] = detections_raw[i].pose.pose.pose.orientation
 
   def capture_scene(self):
-      return self.pos, self.rot
+      return self.pos.squeeze(), self.rot
 
   def transform_cam_to_arm(self, cam):
       cam = np.array([cam]).reshape(3,1)
@@ -113,11 +113,20 @@ class Perception():
           rot_rel[tag] = euler_from_quaternion(quaternion_multiply(quaternion_inverse(rot[tag]), anchor_rot))[2]
 
   def transform_arm_to_master(self, arm):
-      master_orientation = self.get_base_orientation
-      master_position = self.get_base_position
-      th = euler_from_quaternion(quaternion_multiply(quaternion_inverse(master_orientation), [0,0,0,1]))[2] # TBA
-      H = np.array([[1, 0, 0, loc[0]],[0, cos(th), sin(th), loc[1]],[0, -sin(th), cos(th), loc[2]],[0,0,0,1]])
-      return np.matmul(H, arm) # TBA dimensions
+    _rot = self.get_base_orientation()
+    _pos = self.get_base_position()
+    try:
+      _arm = arm.squeeze()
+      _arm = np.array([_arm[0], _arm[1], _arm[2], 1.0]).reshape(4,1)
+      quat_input = [_rot.x, _rot.y, _rot.z, _rot.w]
+      th = euler_from_quaternion(quaternion_multiply(quaternion_inverse(quat_input), [0,1,0,0]))[2] # TBA
+      H = np.array([[math.cos(th), -math.sin(th), 0, _pos[0]], [math.sin(th), math.cos(th), 0, _pos[1]], [0, 0, 1, _pos[2]], [0,0,0,1]])
+      # H = np.array([[1, 0, 0, _pos[0]],[0, math.cos(th), -math.sin(th), _pos[1]],[0, math.sin(th), math.cos(th), 0.0*_pos[2]],[0,0,0,1]])
+      # print _arm
+      print np.matmul(H, _arm) 
+      # return np.matmul(H, arm) # TBA dimensions
+    except:
+      pass
 
   def calculate_displacement(self):
     delta = {}
@@ -349,6 +358,9 @@ def run():
 
   # # Terminate when probability values have converged
   while not rospy.is_shutdown():
+    pass
+    # print perc.pos.get(18)
+    # perc.transform_arm_to_master(perc.pos.get(18))
     while not scene.is_converged() and count_iter <= scene.action_count:
       if ready_for_next_action:
         target_tag, dist, angle = scene.get_next_action()
