@@ -1,0 +1,5 @@
+blocks:
+    [{id: 0, row: 0, col: 0, N: 0, W: 0, S: 0, E: 0},
+     {id: 6, row: 0, col: 1, N: 0, W: 0, S: 0, E: 0},
+     {id: 2, row: 1, col: 0, N: 0, W: 0, S: 0, E: 0},
+     {id: 13, row: 1, col: 1, N: 0, W: 0, S: 0, E: 0}]

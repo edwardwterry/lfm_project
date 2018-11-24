@@ -13,13 +13,17 @@ import rospy
 from lfm.msg import Action, AprilTagDetectionArray, AprilTagDetection
 from std_msgs.msg import Bool, String
 from tf.transformations import euler_from_quaternion, quaternion_inverse, quaternion_multiply
-
+np.set_printoptions(precision=3)
 # Hyperparameters and utility functions
-THRESHOLD_MOVED = 0.02
+THRESHOLD_MOVED = 0.005
 THRESHOLD_CONNECTION_PROB = 0.5
 THRESHOLD_LOWER_BOUND = 0.1
 THRESHOLD_UPPER_BOUND = 0.9
 SHIFT_LENGTH=0.05
+
+# https://stackoverflow.com/questions/2084508/clear-terminal-in-python
+import os
+os.system('cls' if os.name == 'nt' else 'clear')
 
 sequence_complete = False
 sequence_initiated = False
@@ -133,15 +137,15 @@ class Perception():
     for tag in self.start_scene: # 0th element contains position data
       try: 
         if tag in self.end_scene:
-          print self.start_scene[tag][0], self.end_scene[tag][0]
-          print self.start_scene[tag][1], self.end_scene[tag][1]
+          # print self.start_scene[tag][0], self.end_scene[tag][0]
+          # print self.start_scene[tag][1], self.end_scene[tag][1]
           delta[tag] = math.sqrt((self.end_scene[tag][0] - self.start_scene[tag][0]) ** 2 \
                                     + (self.end_scene[tag][1] - self.start_scene[tag][1]) ** 2)
       except:
         print('Tag ', tag, ' can''t be found in end scene')
         pass
-    print "Tag displacement:\n", delta
-    return delta # this is probably in meters
+    # print "Tag displacement:\n", delta
+    return delta # this is in meters
 
   def save_current_scene(self, scene_type):
     if scene_type == "start":
@@ -190,15 +194,16 @@ class Scene():
     self._prob = {}
     self._adjacent, _joined = declare_connections(blocks)
     self.block_ids = np.sort([blocks[tag]['id'] for tag in range(len(blocks))])
-    print self.block_ids
-    self.block_index_map = {zip([i for i in range(self._num_blocks)], [self.block_ids[i] for i in range(len(self.block_ids))])} # this is the definitive mapping from matrix indices to block_ids
+    self.block_index_map = {}
+    for i in range(self._num_blocks):
+      self.block_index_map[i] = self.block_ids[i]    
+    print self.block_index_map
     self.direction_map = {'N': 0.0, 'W': 90.0, 'S': 180.0, 'E': 270.0}
     self.num_actions = 6
     self.action_count = 0
     self.target_tags = []
     self.dists = []
     self.angles = []
-    self.populate_action_sequence()
     self.E = np.tril(np.full((self._num_blocks,self. _num_blocks),1.0),-1) # initiate it with highest entropy
     self.L = []
     self.sureLink = []
@@ -210,7 +215,7 @@ class Scene():
     self.target_tags = np.random.choice(self.block_ids, self.num_actions)
     self.dists = np.random.rand(self.num_actions) * max_dist
     self.angles = np.random.choice(self.direction_map.values(), self.num_actions)
-    print self.target_tags, self.dists, self.angles
+    # print self.target_tags, self.dists, self.angles
 
   def get_next_action(self):
     try:
@@ -308,8 +313,16 @@ class Scene():
   #       observation[block_id_adj] = False
   #   return observation
 
-  def update(self, delta):
-    self.moved = [1 if delta[self.block_index_map[index]] > THRESHOLD_MOVED else 0 for index in self.block_index_map.keys()]
+  def update_moved(self, delta):
+    print delta
+    # print np.array([delta])
+    # self.moved = [1 if delta[self.block_index_map[index]] > THRESHOLD_MOVED else 0 for index in range(len(self.block_index_map))]
+    print self.block_index_map
+    # print self.block_index_map[0]
+    print delta[0]
+    print delta[self.block_index_map.values()[2]]
+    self.moved = [1 if delta[index] > THRESHOLD_MOVED else 0 for index in self.block_index_map.values()]
+    print self.moved
 
   # def is_converged(self):
   #   """
@@ -325,15 +338,21 @@ class Scene():
   def genLink(self): # generates ma
       L = np.full((self._num_blocks, self._num_blocks), THRESHOLD_CONNECTION_PROB)
       self.L = np.tril(L,-1)
+      print self.L
 
   def bestAction(self): # TO DO this is just a baseline: Develop actual action policy
       #publish to robot next part to push
       maxEnt = np.argmax(self.E) # link with highest entropy
       highLink = np.unravel_index(maxEnt, self.E.shape) # unravel it into a position tuple
-      target_tag = np.random.choice(self.block_index_map[highLink]) # pick a random part of the high link
+      # print highLink
+      target_tag_index = np.random.choice(highLink) # pick a random part of the high link
+      target_tag = self.block_index_map[target_tag_index] # pick a random part of the high link
       dist = self.move_distance
-      angle = np.random.choice(self.direction_map) # pick a random direction
+      angle = np.random.choice(self.direction_map.values()) # pick a random direction
       self.action_count = self.action_count + 1
+      print "Target tag: ", target_tag
+      print "Distance: ", dist, " mm"
+      print "Angle: ", angle, "deg"
       return target_tag, dist, angle
 
   def updateBelief(self):
@@ -354,9 +373,12 @@ class Scene():
                   self.L[i][j] = probPos
                   # adds to set link with high certainty to capture that relation
                   # to avoid updating it and moving towards convergence
-                  if probPos > .9 or probPos < .1:
+                  if probPos > THRESHOLD_UPPER_BOUND or probPos < THRESHOLD_LOWER_BOUND:
                       self.sureLink.append((i,j))
-                      print('Found a link between parts: ', i,' and ', j)
+                      if probPos > THRESHOLD_UPPER_BOUND:
+                        print '\n !!!! PARTS ARE JOINED: ', self.block_index_map[i], ' and ', self.block_index_map[j], '\n'
+                      if probPos < THRESHOLD_LOWER_BOUND:
+                        print '\n **** PARTS ARE SEPARATE: ', self.block_index_map[i], ' and ', self.block_index_map[j], '\n'                      
       print('Updated Link Probabilities:')
       print(self.L)
       
@@ -370,6 +392,9 @@ class Scene():
               self.E = np.tril(self.E,-1) # extracts lower triangular
       print('Entropy Matrix (lower triangular part # vs part #)')
       print self.E
+
+  def is_converged(self):
+    return np.all(np.bitwise_or(self.L<THRESHOLD_LOWER_BOUND, self.L>THRESHOLD_UPPER_BOUND))
 
 def seqCompleteClbk(msg):
   global sequence_complete
@@ -398,43 +423,41 @@ def run():
   master_orientation = perc.get_base_orientation()
   ready_for_next_action = True
 
-  # Initialize connection probabilities to 0.5 (prior):
-  for block_id in scene.block_ids:
-    for block_id_adj in scene.get_links(block_id):
-      scene.set_probability(block_id, block_id_adj, 0.5)
+  
+  scene.genLink()
 
   while not rospy.is_shutdown():
     # pass
     # print perc.pos.get(18)
     # perc.transform_arm_to_master(perc.pos.get(18))
-    # while count_iter <= scene.action_count:
-    if ready_for_next_action:
-      # target_tag, dist, angle = scene.get_next_action() # used for demo
-      target_tag, dist, angle = scene.bestAction() # paulo
-      actionSequence.append([target_tag, dist, angle])
-      control.send_action(target_tag, dist, angle)
-      ready_for_next_action = False
+    while not scene.is_converged():
+      if ready_for_next_action:
+        # target_tag, dist, angle = scene.get_next_action() # used for demo
+        target_tag, dist, angle = scene.bestAction()
+        actionSequence.append([target_tag, dist, angle])
+        control.send_action(target_tag, dist, angle)
+        ready_for_next_action = False
 
-    #   entropy = scene.get_link_entropy()
-    #   print entropy
-    #   averageEntropy.append(np.mean(entropy.values()))
+      if sequence_initiated:
+        print "Capturing start scene..."
+        perc.save_current_scene("start")
+        rospy.loginfo("Captured start scene")
+        sequence_initiated = False
 
-    if sequence_initiated:
-      print "Capturing start scene..."
-      perc.save_current_scene("start")
-      print "Captured start scene"
-      sequence_initiated = False
-
-    if sequence_complete:
-      # count_iter += 1
-      sequence_complete = False
-      ready_for_next_action = True
-      print "Capturing end scene..."
-      perc.save_current_scene("end")
-      print "Captured end scene"
-      delta = perc.calculate_displacement()
-      scene.updateBelief()
-      scene.updateEntropy()
+      if sequence_complete:
+        sequence_complete = False
+        ready_for_next_action = True
+        print "Capturing end scene..."
+        perc.save_current_scene("end")
+        rospy.loginfo("Captured end scene")
+        delta = perc.calculate_displacement()
+        scene.update_moved(delta)
+        scene.updateBelief()
+        scene.updateEntropy()
+        # raw_input()
+    
+    print "Completed in ", scene.action_count, " iterations"
+    quit()
 
     # # Print the connections found
     # for link, p in linked_blocks._prob.items():
