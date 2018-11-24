@@ -189,7 +189,8 @@ class Scene():
     self._num_blocks = len(blocks)
     self._prob = {}
     self._adjacent, _joined = declare_connections(blocks)
-    self.block_ids = [blocks[tag]['id'] for tag in range(len(blocks))]
+    self.block_ids = np.sort([blocks[tag]['id'] for tag in range(len(blocks))]) # this is the definitive mapping from matrix indices to block_ids
+    self.block_index_map = {zip([i for i in range(_self.num_blocks)], self.block_ids)}
     self.direction_map = {'N': 0.0, 'W': 90.0, 'S': 180.0, 'E': 270.0}
     self.num_actions = 6
     self.action_count = 0
@@ -197,6 +198,11 @@ class Scene():
     self.dists = []
     self.angles = []
     self.populate_action_sequence()
+    self.E = np.tril(np.full((self._num_blocks,self. _num_blocks),1.0),-1) # initiate it with highest entropy
+    self.L = []
+    self.sureLink = []
+    self.moved=[]
+    self.move_distance = 10.0 # mm
 
   def populate_action_sequence(self):
     max_dist = 40 # mm
@@ -270,59 +276,98 @@ class Scene():
     # TODO PAULO
     return 
 
-  def compute_observation(self, block_id, state_pre, state_post, block_mappings):
-    """
-    DO NOT MODIFY!
+  # def compute_observation(self, block_id, state_pre, state_post, block_mappings):
+  #   """
+  #   DO NOT MODIFY!
 
-    Computes the high level observation, whether a given block has moved (or not)
+  #   Computes the high level observation, whether a given block has moved (or not)
 
-    Parameters
-    ----------
-    block_id : Corresponds to the block that was moved
-    state_pre : V-REP data structure of the state before block was moved
-    state_post : V-REP data structure of the state before block was moved
-    block_mappings : V-REP data structure mapping grid definition to that of V-REP
+  #   Parameters
+  #   ----------
+  #   block_id : Corresponds to the block that was moved
+  #   state_pre : V-REP data structure of the state before block was moved
+  #   state_post : V-REP data structure of the state before block was moved
+  #   block_mappings : V-REP data structure mapping grid definition to that of V-REP
 
-    Returns
-    ----------
-    observation: A dictionary where the key is the block_id and value is whether
-    that block moved (boolean)
-    """
-    observation = {}
+  #   Returns
+  #   ----------
+  #   observation: A dictionary where the key is the block_id and value is whether
+  #   that block moved (boolean)
+  #   """
+  #   observation = {}
 
-    for block_id_adj in xrange(1, self._num_blocks+1):
-      adj_idx = int(block_mappings.flatten()[block_id_adj-1]) - 1
-      dist_moved = np.linalg.norm(np.array(state_post['Block'][adj_idx][:2]) - np.array(state_pre['Block'][adj_idx][:2]))
-      if dist_moved > THRESHOLD_MOVED:
-        print('When moving block {}, adjacent block {} moved {}'.format(block_id, block_id_adj, dist_moved))
-        observation[block_id_adj] = True
-      else:
-        print('When moving block {}, adjacent block {} was stationary, it moved {} (m)'.format(block_id, block_id_adj, dist_moved))
-        observation[block_id_adj] = False
-    return observation
+  #   for block_id_adj in xrange(1, self._num_blocks+1):
+  #     adj_idx = int(block_mappings.flatten()[block_id_adj-1]) - 1
+  #     dist_moved = np.linalg.norm(np.array(state_post['Block'][adj_idx][:2]) - np.array(state_pre['Block'][adj_idx][:2]))
+  #     if dist_moved > THRESHOLD_MOVED:
+  #       print('When moving block {}, adjacent block {} moved {}'.format(block_id, block_id_adj, dist_moved))
+  #       observation[block_id_adj] = True
+  #     else:
+  #       print('When moving block {}, adjacent block {} was stationary, it moved {} (m)'.format(block_id, block_id_adj, dist_moved))
+  #       observation[block_id_adj] = False
+  #   return observation
 
   def update(self, delta):
+    self.moved = [1 if delta[self.block_index_map[index]] > THRESHOLD_MOVED else 0 for index in self.block_index_map.keys()]
 
-      for link in self.get_all_links():
-        (block_1, block_2) = link
-        prob_prior = self.get_probability(block_1, block_2)
+  # def is_converged(self):
+  #   """
+  #   DO NOT MODIFY!
 
-        # Compute posterior of link connection given data
-        # TODO: - update prob_posterior correctly, based on the observation and prior from previous iteration
-        prob_posterior = 0.0
+  #   Returns True, if the probabilities have converged (i.e. below certain thresholds)
+  #   and False otherwise.
+  #   """
+  #   prob = np.array(self._prob.values())
+  #   return np.all(np.logical_or(prob<THRESHOLD_LOWER_BOUND, prob>THRESHOLD_UPPER_BOUND))
 
-        # Update connection probability
-        self.set_probability(block_1, block_2, prob_posterior)
+  # Generates matrix of prior probabilities that each link combination is active
+  def genLink(self): # generates ma
+      L = np.full((self._num_blocks, self._num_blocks), THRESHOLD_CONNECTION_PROB)
+      self.L = np.tril(L,-1)
 
-  def is_converged(self):
-    """
-    DO NOT MODIFY!
+  def bestAction(self): # TO DO this is just a baseline: Develop actual action policy
+      #publish to robot next part to push
+      maxEnt = np.argmax(self.E) # link with highest entropy
+      highLink = np.unravel_index(maxEnt, self.E.shape) # unravel it into a position tuple
+      target_tag = np.random.choice(highLink) # pick a random part of the high link
+      dist = self.move_distance
+      angle = np.random.choice(self.direction_map) # pick a random direction
+      return target_tag, dist, angle
 
-    Returns True, if the probabilities have converged (i.e. below certain thresholds)
-    and False otherwise.
-    """
-    prob = np.array(self._prob.values())
-    return np.all(np.logical_or(prob<THRESHOLD_LOWER_BOUND, prob>THRESHOLD_UPPER_BOUND))
+  def updateBelief(self):
+      # iterate through lower triangular portion of matrix L and update probabilitiies links
+      for i in range(self._num_blocks):
+          for j in range(0,i): # iterate through row of part just moved
+              # check if link is not already determined
+              if (i,j) not in self.sureLink:
+                  probPrior = self.L[i][j]
+                  # these are Bayesian updated similar to HW1. TODO: update these ratios
+                  if (self.moved[i] == True and self.moved[j] == True):
+                      probPos = 3 * probPrior / (2 + probPrior)
+                  elif (self.moved[i] == False and self.moved[j] == False):
+                      probPos = probPrior # nothing was learned here
+                  else:
+                      probPos = 2 * probPrior / (3 -  probPrior)
+                  # update L matrix
+                  self.L[i][j] = probPos
+                  # adds to set link with high certainty to capture that relation
+                  # to avoid updating it and moving towards convergence
+                  if probPos > .9 or probPos < .1:
+                      self.sureLink.append((i,j))
+                      print('Found a link between parts: ', i,' and ', j)
+      print('Updated Links Probabilities:')
+      print(self.L)
+      
+  # update entropy matrix    
+  def updateEntropy(self):
+      for i in range(0,self.n):
+          for j in range(0,i):
+              p = self.L[i][j]
+              entropy = -p * math.log(p, 2) - (1-p) * math.log(1-p, 2)
+              self.E[i][j] = entropy
+              self.E = np.tril(self.E,-1) # extracts lower triangular
+      print('Entropy Matrix (lower triangular part # vs part #)')
+      print self.E
 
 def seqCompleteClbk(msg):
   global sequence_complete
@@ -356,14 +401,14 @@ def run():
     for block_id_adj in scene.get_links(block_id):
       scene.set_probability(block_id, block_id_adj, 0.5)
 
-  # # Terminate when probability values have converged
   while not rospy.is_shutdown():
     pass
     # print perc.pos.get(18)
     # perc.transform_arm_to_master(perc.pos.get(18))
-    while not scene.is_converged() and count_iter <= scene.action_count:
+    while count_iter <= scene.action_count:
       if ready_for_next_action:
-        target_tag, dist, angle = scene.get_next_action()
+        # target_tag, dist, angle = scene.get_next_action() # used for demo
+        target_tag, dist, angle = scene.bestAction() # paulo
         actionSequence.append([target_tag, dist, angle])
         control.send_action(target_tag, dist, angle)
         ready_for_next_action = False
@@ -386,7 +431,8 @@ def run():
         perc.save_current_scene("end")
         print "Captured end scene"
         delta = perc.calculate_displacement()
-        # scene.update(delta)
+        scene.update_belief()
+        scene.update_entropy()
 
     # # Print the connections found
     # for link, p in linked_blocks._prob.items():
