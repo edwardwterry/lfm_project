@@ -81,6 +81,8 @@ class Perception():
     self.t = np.array([rospy.get_param('t')]).reshape(3,1)
     self.start_scene = {}
     self.end_scene = {}
+    self.cx = 0.0
+    self.cy = 0.0
 
   def detectionsClbk(self, msg):
     detections_raw = msg.detections
@@ -89,8 +91,26 @@ class Perception():
     for i in range(len(indices_raw)):
         _pos = detections_raw[i].pose.pose.pose.position
         _pos_vector = np.array([_pos.x, _pos.y, _pos.z])
-        self.pos[indices_raw[i]] = self.transform_cam_to_arm(_pos_vector) # assumes that R and t are populated, converts m to mm
+        self.pos[indices_raw[i]] = self.transform_cam_to_arm(_pos_vector) # assumes that R and t are populated, converts m to mm (?)
         self.rot[indices_raw[i]] = detections_raw[i].pose.pose.pose.orientation
+
+  def capture_centroid(self):
+    _cx = 0.0
+    _cy = 0.0
+    for i in range(len(self.tags_in_scene)):
+      _cx = _cx + self.pos[self.tags_in_scene[i][0]]
+      _cy = _cy + self.pos[self.tags_in_scene[i][1]]
+    self.cx = _cx / len(self.tags_in_scene)
+    self.cy = _cy / len(self.tags_in_scene)
+
+  def distWeight(self):
+      pos = self.pos
+      weightDist = [math.sqrt((self.cx-pos[_][0])**2 + (self.cy-pos[_][1])**2) for _ in self.pos]
+      # normalize it
+      normWeight = [_/sum(weightDist) for _ in weightDist]
+      print('WEIGHT:',weightDist)
+      print('Normalized Weight:', normWeight)
+      return normWeight
 
   def capture_scene(self):
       return self.pos.squeeze(), self.rot
@@ -349,6 +369,20 @@ class Scene():
       target_tag = self.block_index_map[target_tag_index] # pick a random part of the high link
       dist = self.move_distance
       angle = np.random.choice(self.direction_map.values()) # pick a random direction
+
+  ### quadrants
+#       x = self.target[0]
+#       y = self.target[1]
+#       if  x < self.cx and y < self.cy:
+#           self.direction = 'N'
+#       elif x < self.cx and y > self.cy:
+#           self.direction = 'E'
+#       elif x > self.cx and y > self.cy:
+#           self.direction = 'S'
+#       else:
+#           self.direction = 'W'
+# #        self.direction = np.random.choice(self.action) # pick a random direction
+
       self.action_count = self.action_count + 1
       print "Target tag: ", target_tag
       print "Distance: ", dist, " mm"
@@ -363,12 +397,24 @@ class Scene():
               if (i,j) not in self.sureLink:
                   probPrior = self.L[i][j]
                   # these are Bayesian updated similar to HW1. TODO: update these ratios
+
+                  pIsJsL1 = 0.5
+                  pIsJsL0 = 0.5
+                  pImJsL1 = 0.4
+                  pIsJmL1 = 0.4
+                  pImJsL0 = 0.6
+                  pIsJmL0 = 0.6
+                  pImJmL1 = 0.6
+                  pImJmL0 = 0.4
+
                   if (self.moved[i] == True and self.moved[j] == True):
-                      probPos = 3 * probPrior / (2 + probPrior)
+                      # probPos = 3 * probPrior / (2 + probPrior)
+                      probPos = pImJmL1*probPrior/(pImJmL1*probPrior + pImJmL0*(1-probPrior))
                   elif (self.moved[i] == False and self.moved[j] == False):
                       probPos = probPrior # nothing was learned here
                   else:
-                      probPos = 2 * probPrior / (3 -  probPrior)
+                      # probPos = 2 * probPrior / (3 -  probPrior)
+                      probPos = pImJsL1*probPrior/(pImJsL1*probPrior + pImJsL0*probPrior)
                   # update L matrix
                   self.L[i][j] = probPos
                   # adds to set link with high certainty to capture that relation
@@ -383,7 +429,7 @@ class Scene():
       print(self.L)
       
   # update entropy matrix    
-  def updateEntropy(self):
+  def updateEntropy(self, weight):
       for i in range(0,self._num_blocks):
           for j in range(0,i):
               p = self.L[i][j]
@@ -392,6 +438,14 @@ class Scene():
               self.E = np.tril(self.E,-1) # extracts lower triangular
       print('Entropy Matrix (lower triangular part # vs part #)')
       print self.E
+      # update it considering distance of each part to to center 
+      # pre-multiplying Entropy matrix by weight vector
+      # weight = self.distWeight()
+      for i in range(0,len(self.E)):
+          for j in range(0,len(self.E[0])):
+              self.E[i][j] = self.E[i][j]*weight[i]
+      print('Entropy updated with weighted distance')
+      print(self.E)
 
   def is_converged(self):
     return np.all(np.bitwise_or(self.L<THRESHOLD_LOWER_BOUND, self.L>THRESHOLD_UPPER_BOUND))
@@ -404,7 +458,7 @@ def seqInitiatedClbk(msg):
   global sequence_initiated
   sequence_initiated = True
 
-def run():
+def run(policy):
   actionSequence = []
   averageEntropy = []
   count_iter = 0
@@ -422,7 +476,7 @@ def run():
   seq_initiated_sub = rospy.Subscriber('/sequence_initiated', Bool, seqInitiatedClbk)
   master_orientation = perc.get_base_orientation()
   ready_for_next_action = True
-
+  first_move = True
   
   scene.genLink()
 
@@ -433,7 +487,8 @@ def run():
     while not scene.is_converged():
       if ready_for_next_action:
         # target_tag, dist, angle = scene.get_next_action() # used for demo
-        target_tag, dist, angle = scene.bestAction()
+        if policy == 'max_entropy':
+          target_tag, dist, angle = scene.bestAction()
         actionSequence.append([target_tag, dist, angle])
         control.send_action(target_tag, dist, angle)
         ready_for_next_action = False
@@ -442,6 +497,9 @@ def run():
         print "Capturing start scene..."
         perc.save_current_scene("start")
         rospy.loginfo("Captured start scene")
+        if first_move:
+          perc.capture_centroid()
+          first_move = False
         sequence_initiated = False
 
       if sequence_complete:
@@ -453,25 +511,22 @@ def run():
         delta = perc.calculate_displacement()
         scene.update_moved(delta)
         scene.updateBelief()
-        scene.updateEntropy()
+        scene.updateEntropy(perc.distWeight())
         # raw_input()
     
     print "Completed in ", scene.action_count, " iterations"
     quit()
 
-    # # Print the connections found
-    # for link, p in linked_blocks._prob.items():
-    #   if p > THRESHOLD_CONNECTION_PROB:
-    #     print('Link found between block {} and {}'.format(link[0], link[1]))
-
-    # print('Action Sequence executed: ', actionSequence)
-    # print('Converged after {} iterations, final Entropy: {}'.format(count_iter, averageEntropy[-1]))
-
 if __name__ == '__main__':
     rospy.init_node('hw1_adapted', anonymous=True)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--policy', default = 'max_entropy')
+
+    args = parser.parse_args()
     rate = rospy.Rate(10)
     try:
-        run()
+        run(args.policy)
     except rospy.ROSInterruptException:
         pass
 
