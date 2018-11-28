@@ -30,9 +30,9 @@ class Env():
                                 # 'SW': ( 1, -1),
                                 'S':  ( 1,  0),
                                 # 'SE': ( 1,  1),
-                                'E':  ( 0,  1)}
+                                'E':  ( 0,  1),
                                 # 'NE': (-1,  1),
-                                # 'NO_SEL': ( 0,  0)}
+                                'NO_SEL': ( 0,  0)}
                                 # 'NO_REQ': ( 0,  0)}
         self.reward_captured = {1: False, 2: False, 3: False, 4: False}
         self.done = False
@@ -51,23 +51,23 @@ class Env():
 
     def calc_reward(self, action):
         _reward = 0
-        # if action == 'NO_SEL':
-        #     _reward = _reward + self.reward_noop_sel
-        # else:
-        _reward = _reward + self.reward_per_move
+        if action == 'NO_SEL':
+            _reward = _reward + self.reward_noop_sel
+        else:
+            _reward = _reward + self.reward_per_move
         if action == 'I_TERM' or self.done == True:
             for block in self.block_pos:
                 free = []
                 for dir in self.action_map.keys():
                     action = self.action_map[dir]
-                    # if not dir == 'NO_SEL':# and not dir == 'NO_REQ':
-                    _next = (self.block_pos[block][0] + action[0], self.block_pos[block][1] + action[1])
-                    if self.on_grid(_next) and self.grid_state[_next[0]][_next[1]] == 0:
-                        free.append(True)
-                    elif not self.on_grid(_next):
-                        free.append(True)
-                    else: # there's another neighboring block
-                        free.append(False)
+                    if not dir == 'NO_SEL':# and not dir == 'NO_REQ':
+                        _next = (self.block_pos[block][0] + action[0], self.block_pos[block][1] + action[1])
+                        if self.on_grid(_next) and self.grid_state[_next[0]][_next[1]] == 0:
+                            free.append(True)
+                        elif not self.on_grid(_next):
+                            free.append(True)
+                        else: # there's another neighboring block
+                            free.append(False)
                 if all(v == True for v in free):
                     self.reward_captured[block] = True
                     _reward = _reward + self.reward_sep
@@ -90,8 +90,8 @@ class Env():
             return True
 
     def move(self, block, action):
-        # if action == 'NO_SEL':
-        #     return
+        if action == 'NO_SEL':
+            return
         next_coord = (self.block_pos[block][0] + self.action_map[action][0], self.block_pos[block][1] + self.action_map[action][1])
         if not self.on_grid(next_coord): # move would take you over the edge
             self.block_pos[block] = (self.block_pos[block][0], self.block_pos[block][1])
@@ -174,13 +174,13 @@ class DQNAgent:
         self.action_map = ((1, 'N'), (1, 'W'), (1, 'S'), (1, 'E'),
                            (2, 'N'), (2, 'W'), (2, 'S'), (2, 'E'),
                            (3, 'N'), (3, 'W'), (3, 'S'), (3, 'E'),
-                           (4, 'N'), (4, 'W'), (4, 'S'), (4, 'E'), (1, 'I_TERM'))
+                           (4, 'N'), (4, 'W'), (4, 'S'), (4, 'E')), (1, 'NO_SEL'))
 
     def _build_model(self):
         # Neural Net for Deep-Q learning Model
         model = Sequential()
-        model.add(Dense(24, input_dim=self.state_size, activation='relu'))
-        model.add(Dense(24, activation='relu'))
+        model.add(Dense(48, input_dim=self.state_size, activation='relu'))
+        model.add(Dense(36, activation='relu'))
         model.add(Dense(self.action_size, activation='linear'))
         model.compile(loss='mse',
                       optimizer=Adam(lr=self.learning_rate))
@@ -221,7 +221,7 @@ class DQNAgent:
 if __name__ == "__main__":
     env = Env()
     state_size = len(env.grid_state.ravel())
-    action_size = env.num_blocks * len(env.action_map) + 1 # adds I_TERM
+    action_size = env.num_blocks * len(env.action_map)# + 1 # adds I_TERM
     agent = DQNAgent(state_size, action_size)
     # agent.load("./save/cartpole-dqn.h5")
     # done = False
