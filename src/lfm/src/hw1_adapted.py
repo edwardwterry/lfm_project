@@ -95,11 +95,14 @@ class Perception():
         self.rot[indices_raw[i]] = detections_raw[i].pose.pose.pose.orientation
 
   def capture_centroid(self):
+    while self.detections_sub.get_num_connections() == 0:
+      rospy.loginfo("Waiting for subscriber to connect")
+      rospy.sleep(0.25)
     _cx = 0.0
     _cy = 0.0
     for i in range(len(self.tags_in_scene)):
-      _cx = _cx + self.pos[self.tags_in_scene[i][0]]
-      _cy = _cy + self.pos[self.tags_in_scene[i][1]]
+      _cx = _cx + self.pos[self.tags_in_scene[i]][0]
+      _cy = _cy + self.pos[self.tags_in_scene[i]][1]
     self.cx = _cx / len(self.tags_in_scene)
     self.cy = _cy / len(self.tags_in_scene)
 
@@ -173,6 +176,27 @@ class Perception():
       self.start_scene = { k : v for k,v in self.pos.iteritems() if v.any()}
     elif scene_type == "end":
       self.end_scene = { k : v for k,v in self.pos.iteritems() if v.any()}
+
+  def get_quadrant(self, block_id):
+    while self.detections_sub.get_num_connections() == 0:
+      rospy.loginfo("Waiting for subscriber to connect")
+      rospy.sleep(0.25)
+    ### quadrants
+    # if len(self.pos) > 0:
+    # print self.pos[3][0]
+    _x = self.pos[block_id][0]
+    _y = self.pos[block_id][1]
+    print "x: ", _x, " y: ", _y
+    print "self.cx: ", self.cx, " self.cy: ", self.cy
+    if  _x >= self.cx and _y <= self.cy:
+        _direction = 'N'
+    elif _x < self.cx and _y <= self.cy:
+        _direction = 'E'
+    elif _x < self.cx and _y > self.cy:
+        _direction = 'S'
+    else:
+        _direction = 'W'
+    return _direction
 
 class Control():
   def __init__(self):
@@ -339,7 +363,7 @@ class Scene():
     # self.moved = [1 if delta[self.block_index_map[index]] > THRESHOLD_MOVED else 0 for index in range(len(self.block_index_map))]
     print self.block_index_map
     # print self.block_index_map[0]
-    print delta[0]
+    # print delta[0]
     print delta[self.block_index_map.values()[2]]
     self.moved = [1 if delta[index] > THRESHOLD_MOVED else 0 for index in self.block_index_map.values()]
     print self.moved
@@ -370,19 +394,22 @@ class Scene():
       dist = self.move_distance
       angle = np.random.choice(self.direction_map.values()) # pick a random direction
 
-  ### quadrants
-#       x = self.target[0]
-#       y = self.target[1]
-#       if  x < self.cx and y < self.cy:
-#           self.direction = 'N'
-#       elif x < self.cx and y > self.cy:
-#           self.direction = 'E'
-#       elif x > self.cx and y > self.cy:
-#           self.direction = 'S'
-#       else:
-#           self.direction = 'W'
-# #        self.direction = np.random.choice(self.action) # pick a random direction
+      self.action_count = self.action_count + 1
+      print "Target tag: ", target_tag
+      print "Distance: ", dist, " mm"
+      print "Angle: ", angle, "deg"
+      return target_tag, dist, angle
 
+  def bestActionRadial(self, quadrant): # TO DO this is just a baseline: Develop actual action policy
+      #publish to robot next part to push
+      maxEnt = np.argmax(self.E) # link with highest entropy
+      highLink = np.unravel_index(maxEnt, self.E.shape) # unravel it into a position tuple
+      # print highLink
+      target_tag_index = np.random.choice(highLink) # pick a random part of the high link
+      target_tag = self.block_index_map[target_tag_index] # pick a random part of the high link
+      dist = self.move_distance
+      angle = self.direction_map[quadrant] # pick a random direction
+      
       self.action_count = self.action_count + 1
       print "Target tag: ", target_tag
       print "Distance: ", dist, " mm"
@@ -414,7 +441,7 @@ class Scene():
                       probPos = probPrior # nothing was learned here
                   else:
                       # probPos = 2 * probPrior / (3 -  probPrior)
-                      probPos = pImJsL1*probPrior/(pImJsL1*probPrior + pImJsL0*probPrior)
+                      probPos = pImJsL1*probPrior/(pImJsL1*probPrior + pImJsL0*(1-probPrior))
                   # update L matrix
                   self.L[i][j] = probPos
                   # adds to set link with high certainty to capture that relation
@@ -438,14 +465,14 @@ class Scene():
               self.E = np.tril(self.E,-1) # extracts lower triangular
       print('Entropy Matrix (lower triangular part # vs part #)')
       print self.E
-      # update it considering distance of each part to to center 
-      # pre-multiplying Entropy matrix by weight vector
-      # weight = self.distWeight()
-      for i in range(0,len(self.E)):
-          for j in range(0,len(self.E[0])):
-              self.E[i][j] = self.E[i][j]*weight[i]
-      print('Entropy updated with weighted distance')
-      print(self.E)
+      # # update it considering distance of each part to to center 
+      # # pre-multiplying Entropy matrix by weight vector
+      # # weight = self.distWeight()
+      # for i in range(0,len(self.E)):
+      #     for j in range(0,len(self.E[0])):
+      #         self.E[i][j] = self.E[i][j]*weight[i]
+      # print('Entropy updated with weighted distance')
+      # print(self.E)
 
   def is_converged(self):
     return np.all(np.bitwise_or(self.L<THRESHOLD_LOWER_BOUND, self.L>THRESHOLD_UPPER_BOUND))
@@ -476,9 +503,9 @@ def run(policy):
   seq_initiated_sub = rospy.Subscriber('/sequence_initiated', Bool, seqInitiatedClbk)
   master_orientation = perc.get_base_orientation()
   ready_for_next_action = True
-  first_move = True
   
   scene.genLink()
+  perc.capture_centroid()
 
   while not rospy.is_shutdown():
     # pass
@@ -489,6 +516,10 @@ def run(policy):
         # target_tag, dist, angle = scene.get_next_action() # used for demo
         if policy == 'max_entropy':
           target_tag, dist, angle = scene.bestAction()
+        elif policy == 'radial':
+          target_tag, _, _ = scene.bestAction()
+          quadrant = perc.get_quadrant(target_tag)
+          _, dist, angle = scene.bestActionRadial(quadrant)
         actionSequence.append([target_tag, dist, angle])
         control.send_action(target_tag, dist, angle)
         ready_for_next_action = False
@@ -497,9 +528,6 @@ def run(policy):
         print "Capturing start scene..."
         perc.save_current_scene("start")
         rospy.loginfo("Captured start scene")
-        if first_move:
-          # perc.capture_centroid()
-          first_move = False
         sequence_initiated = False
 
       if sequence_complete:
