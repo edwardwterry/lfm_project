@@ -10,7 +10,8 @@ class Env():
         self.reward_noop_sel = 0.0
         self.max_num_moves = 10
         self.grid_state = np.zeros((self.grid_edges, self.grid_edges))
-        self.block_pos = {1: (1, 1), 2: (1, 2), 3: (2, 1), 4: (2, 2)}
+        # self.block_pos = {1: (1, 1), 2: (1, 2), 3: (2, 1), 4: (2, 2)}
+        self.block_pos = {1: (0, 0), 2: (0, 3), 3: (3, 0), 4: (3, 3)}
         self.move_count = 0
         self.action_map = {     'N':  (-1,  0), # (r, c)
                                 'NW': (-1, -1),
@@ -31,7 +32,6 @@ class Env():
             self.grid_state[pos[0]][pos[1]] = block
 
         self.move_count = 0
-        # self.reward_total = 0        
         pass
 
     def calc_reward(self, action):
@@ -43,17 +43,21 @@ class Env():
         for block in self.block_pos:
             if not self.reward_captured[block]:
                 free = []
-                for action in self.action_map.values():
-                    _next = (self.block_pos[block][0] + action[0], self.block_pos[block][1] + action[1])
-                    if self.on_grid(_next) and self.grid_state[_next[0]][_next[1]] == 0:
-                        free.append(True)
-                    elif not self.on_grid(_next):
-                        free.append(True)
+                for dir in self.action_map.keys():
+                    action = self.action_map[dir]
+                    if not dir == 'NO_SEL' and not dir == 'NO_REQ':
+                        _next = (self.block_pos[block][0] + action[0], self.block_pos[block][1] + action[1])
+                        if self.on_grid(_next) and self.grid_state[_next[0]][_next[1]] == 0:
+                            free.append(True)
+                        elif not self.on_grid(_next):
+                            free.append(True)
+                        else:
+                            free.append(False)
                 if all(v == True for v in free):
                     self.reward_captured[block] = True
                     reward = reward + self.reward_sep
-            
-        if all(v == True for v in self.reward_captured):
+
+        if all(v == True for v in self.reward_captured.values()):
             self.done = True
             reward = reward + self.reward_end
 
@@ -62,7 +66,6 @@ class Env():
     def on_grid(self, coord):
         row = coord[0]
         col = coord[1]
-        # print coord
         if (row < 0 or 
             row >= self.grid_edges or
             col < 0 or 
@@ -72,6 +75,8 @@ class Env():
             return True
 
     def move(self, block, action):
+        if action == 'NO_SEL':
+            return
         next_coord = (self.block_pos[block][0] + self.action_map[action][0], self.block_pos[block][1] + self.action_map[action][1])
         if not self.on_grid(next_coord): # move would take you over the edge
             self.block_pos[block] = (self.block_pos[block][0] + self.action_map['NO_REQ'][0], self.block_pos[block][1] + self.action_map['NO_REQ'][1])
@@ -79,25 +84,20 @@ class Env():
         elif (self.on_grid(next_coord) and self.grid_state[next_coord[0]][next_coord[1]] == 0): # move is on board and neighbor is free
             self.grid_state[self.block_pos[block][0]][self.block_pos[block][1]] = 0
             self.block_pos[block] = (self.block_pos[block][0] + self.action_map[action][0], self.block_pos[block][1] + self.action_map[action][1])
-            # print self.block_pos[block]
             self.grid_state[self.block_pos[block][0]][self.block_pos[block][1]] = block   
         else: # move is on board, and neighbor is occupied
             # how many neighbors in a row?
             occupants = []
             while self.on_grid(next_coord):
                 occupant = int(self.grid_state[next_coord[0]][next_coord[1]])
-                # print int(occupant)
                 occupants.append(occupant)
                 next_coord = (next_coord[0] + self.action_map[action][0], next_coord[1] + self.action_map[action][1])
-            # print occupants
             # https://stackoverflow.com/questions/6039425/sequence-find-function-in-python
             if 0 in occupants:
                 num_nonzero_neighbors = occupants.index(0)-1 # [0 1 2 0] and 1,E gives 1 # [1 2 3 0] and 1, E gives 2
-                # print num_nonzero_neighbors
                 for i in range(num_nonzero_neighbors, -1, -1):
                     # furthest block away
                     _block = occupants[i]
-                    # print _block
                     self.move(_block, action) # recursion!
                 self.grid_state[self.block_pos[block][0]][self.block_pos[block][1]] = 0
                 self.block_pos[block] = (self.block_pos[block][0] + self.action_map[action][0], self.block_pos[block][1] + self.action_map[action][1])
@@ -122,6 +122,7 @@ class Env():
 if __name__ == "__main__":
     env = Env()
     env.reset_env()
-    block = 1#int(raw_input())
-    action = 'E'#raw_input()
-    env.act(block, action)
+    block = 2#int(raw_input())
+    action = 'NO_SEL'#raw_input()
+    state, reward, done = env.act(block, action)
+    print reward
