@@ -498,7 +498,7 @@ def run(policy):
         perc.save_current_scene("start")
         rospy.loginfo("Captured start scene")
         if first_move:
-          perc.capture_centroid()
+          # perc.capture_centroid()
           first_move = False
         sequence_initiated = False
 
