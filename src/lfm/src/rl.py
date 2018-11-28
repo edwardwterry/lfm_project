@@ -15,11 +15,11 @@ class Env():
     def __init__(self):
         self.grid_edges = 4
         self.num_blocks = 4
-        self.reward_per_move = -0.1
-        self.reward_sep = 0.1
-        self.reward_end = 1.0
+        self.reward_per_move = -1.0
+        self.reward_sep = 1.0
+        self.reward_end = 10.0
         self.reward_noop_sel = 0.0
-        self.max_num_moves = 10
+        self.max_num_moves = 7
         self.grid_state = np.zeros((self.grid_edges, self.grid_edges))
         self.block_pos_orig = {1: (1, 1), 2: (1, 2), 3: (2, 1), 4: (2, 2)}
         self.block_pos = {1: (1, 1), 2: (1, 2), 3: (2, 1), 4: (2, 2)}
@@ -166,21 +166,21 @@ class DQNAgent:
         self.action_size = action_size
         self.memory = deque(maxlen=2000)
         self.gamma = 0.99    # discount rate
-        self.epsilon = 1.0  # exploration rate
+        self.epsilon = 0.8  # exploration rate
         self.epsilon_min = 0.05
         self.epsilon_decay = 0.9999
-        self.learning_rate = 0.0001
+        self.learning_rate = 0.001
         self.model = self._build_model()
         self.action_map = ((1, 'N'), (1, 'W'), (1, 'S'), (1, 'E'),
                            (2, 'N'), (2, 'W'), (2, 'S'), (2, 'E'),
                            (3, 'N'), (3, 'W'), (3, 'S'), (3, 'E'),
-                           (4, 'N'), (4, 'W'), (4, 'S'), (4, 'E')), (1, 'NO_SEL'))
+                           (4, 'N'), (4, 'W'), (4, 'S'), (4, 'E'), (1, 'NO_SEL'))
 
     def _build_model(self):
         # Neural Net for Deep-Q learning Model
         model = Sequential()
-        model.add(Dense(48, input_dim=self.state_size, activation='relu'))
-        model.add(Dense(36, activation='relu'))
+        model.add(Dense(24, input_dim=self.state_size, activation='relu'))
+        model.add(Dense(24, activation='relu'))
         model.add(Dense(self.action_size, activation='linear'))
         model.compile(loss='mse',
                       optimizer=Adam(lr=self.learning_rate))
@@ -206,8 +206,12 @@ class DQNAgent:
                           np.amax(self.model.predict(next_state)[0]))
             target_f = self.model.predict(state)
             target_f[0][action] = target
-            # print (state, target_f)
-            self.model.fit(state, target_f, epochs=1, verbose=0)
+            # print (target_f)
+            mask = np.zeros((1, self.action_size))
+            mask[0][action] = 1
+            # print (mask*target_f)
+            # self.model.fit(state, target_f, epochs=1, verbose=0)
+            self.model.fit(state, mask*target_f, epochs=1, verbose=0)
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
 
@@ -221,7 +225,7 @@ class DQNAgent:
 if __name__ == "__main__":
     env = Env()
     state_size = len(env.grid_state.ravel())
-    action_size = env.num_blocks * len(env.action_map)# + 1 # adds I_TERM
+    action_size = 17# env.num_blocks * len(env.action_map) + 1 # adds I_TERM
     agent = DQNAgent(state_size, action_size)
     # agent.load("./save/cartpole-dqn.h5")
     # done = False
