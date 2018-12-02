@@ -15,12 +15,12 @@ class Env():
     def __init__(self):
         self.grid_edges = 4
         self.num_blocks = 2
-        self.reward_per_move = -1.0
+        self.reward_per_move = -0.5
         # self.reward_sep = 1.0
         self.reward_grid = np.array([[2.0,1.0,1.0,2.0],[1.0,0.0,0.0,1.0],[1.0,0.0,0.0,1.0],[2.0,1.0,1.0,2.0]]) # requires 4x4
         self.reward_noop_sel = 0.0
         self.reward_adjacent = -1.0
-        self.max_num_moves = 7
+        self.max_num_moves = 4
         self.grid_state = np.zeros((self.grid_edges, self.grid_edges))
         self.block_pos_orig = {1: (1, 1), 2: (1, 2)}
         self.block_pos = {1: (1, 1), 2: (1, 2)}
@@ -186,21 +186,22 @@ class DQNAgent:
     def __init__(self, state_size, action_size):
         self.state_size = state_size
         self.action_size = action_size
-        self.memory = deque(maxlen=2000)
-        self.gamma = 0.99    # discount rate
+        self.memory = deque(maxlen=1000)
+        self.gamma = 0.95    # discount rate
         self.epsilon = 0.8  # exploration rate
         self.epsilon_min = 0.05
         self.epsilon_decay = 0.9999
         self.learning_rate = 0.001
         self.model = self._build_model()
-        self.action_map = ((1, 'N'), (1, 'W'), (1, 'S'), (1, 'E'),
-                           (2, 'N'), (2, 'W'), (2, 'S'), (2, 'E'), (1, 'NO_SEL'))
+        # self.action_map = ((1, 'N'), (1, 'W'), (1, 'S'), (1, 'E'),
+        #                    (2, 'N'), (2, 'W'), (2, 'S'), (2, 'E'), (1, 'NO_SEL'))
+        self.action_map = ((1, 'W'), (1, 'E'), (2, 'W'), (2, 'E'), (1, 'NO_SEL'))
 
     def _build_model(self):
         # Neural Net for Deep-Q learning Model
         model = Sequential()
-        model.add(Dense(24, input_dim=self.state_size, activation='relu'))
-        model.add(Dense(24, activation='relu'))
+        model.add(Dense(50, input_dim=self.state_size, activation='relu'))
+        model.add(Dense(30, activation='relu'))
         model.add(Dense(self.action_size, activation='linear'))
         model.compile(loss='mse',
                       optimizer=Adam(lr=self.learning_rate))
@@ -250,32 +251,29 @@ if __name__ == "__main__":
     # agent.load("./save/cartpole-dqn.h5")
     # done = False
     batch_size = 32
+    reward_total = []
 
     for e in range(EPISODES):
         state = env.reset()
         state = np.reshape(state, [1, state_size])
         done = False
-        if e%50 == 0:
-            reward_total = 0
-        # print ("here")
+        episode_reward = 0
         while not done:
             action = agent.act(state)
-            # print (agent.action_map[action][0], agent.action_map[action][1])
-            # input()
             next_state, _, reward, done = env.step(agent.action_map[action][0], agent.action_map[action][1])
-            # print ("\n", agent.action_map[action])
-            # print (next_state.reshape((4,4)))
-            # print (reward)
-            reward_total = reward_total + reward
+            episode_reward = episode_reward + reward
             next_state = np.reshape(next_state, [1, state_size]) # turns into a row vector
             agent.remember(state, action, reward, next_state, done)
             state = next_state
             if done:
-                # print ("Reward: ", reward_total)
+                reward_total.append(episode_reward)
+                # print("\n", episode_reward)
+                # print(next_state.reshape((4,4)))
+                episode_reward = 0
                 if e%50 == 0:
-                    print("episode: {}/{}, score: {:.2}, e: {:.2}"
-                        .format(e, EPISODES, reward_total/50, agent.epsilon))
-                break
+                    print("episode: {}/{}, reward: {:.2}, std: {:.2}, e: {:.2}"
+                        .format(e, EPISODES, np.mean(reward_total), np.std(reward_total), agent.epsilon))
+                    reward_total = []
         if len(agent.memory) > batch_size:
             agent.replay(batch_size)
         # if e % 10 == 0:
