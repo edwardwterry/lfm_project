@@ -91,8 +91,13 @@ class Perception():
     self.cy = 0.0
     self.im_sub = rospy.Subscriber("/tag_detections_image", Image, self.detectionsImgClbk, queue_size = 1)
     self.cv_image = []
+    self.ros_image_data = []
+    self.complete_ros_image = Image()
 
   def detectionsClbk(self, msg):
+    while self.detections_sub.get_num_connections() == 0:
+      rospy.loginfo("Waiting for subscriber to connect")
+      rospy.sleep(0.25)
     detections_raw = msg.detections
     indices_raw = [detections_raw[i].id[0] for i in range(len(detections_raw))]
     self.tags_in_scene = indices_raw
@@ -103,10 +108,15 @@ class Perception():
         self.rot[indices_raw[i]] = detections_raw[i].pose.pose.pose.orientation
   
   def detectionsImgClbk(self, msg):
-      while self.im_sub.get_num_connections() == 0:
-        rospy.loginfo("Waiting for subscriber to connect")
-        rospy.sleep(0.25)
-      self.cv_image = bridge.imgmsg_to_cv2(msg, desired_encoding="passthrough")
+      # while self.im_sub.get_num_connections() == 0:
+      #   rospy.loginfo("Waiting for subscriber to connect")
+      #   rospy.sleep(0.05)
+      # self.cv_image = bridge.imgmsg_to_cv2(msg, desired_encoding="passthrough")
+      # print msg
+      # print type(msg.data)
+      # print type(msg)
+      self.complete_ros_image = msg
+      # self.ros_image_data = msg.data
 
   def capture_centroid(self):
     while self.detections_sub.get_num_connections() == 0:
@@ -183,8 +193,15 @@ class Perception():
         pass
     # print "Tag displacement:\n", delta
     return delta # this is in meters
+
   def get_current_image(self):
-    return self.cv_image
+    # return self.cv_image
+    # print self.ros_image.data
+    # ros_image = Image()
+    # ros_image.data = self.ros_image_data
+    # ros_image.header.stamp = rospy.Time.now()
+    # print ros_image
+    return self.complete_ros_image
 
   def save_current_scene(self, scene_type):
     if scene_type == "start":
@@ -402,6 +419,16 @@ class Scene():
       self.write_to_file(self.L, "prob.csv")
       self.write_to_file(self.E, "entropy.csv")
 
+  def randomAction(self):
+      target_tag = np.random.choice(self.block_index_map.values()) # pick a random block
+      dist = self.move_distance
+      angle = np.random.choice(self.direction_map.values()) # pick a random direction 
+      self.action_count = self.action_count + 1
+      print "Target tag: ", target_tag
+      print "Distance: ", dist, " mm"
+      print "Angle: ", angle, "deg"
+      return target_tag, dist, angle
+     
   def bestAction(self): # TO DO this is just a baseline: Develop actual action policy
       #publish to robot next part to push
       maxEnt = np.argmax(self.E) # link with highest entropy
@@ -481,7 +508,7 @@ class Scene():
       np.savetxt(myfile, input, delimiter=",", fmt="%.3e")   
 
   # update entropy matrix    
-  def updateEntropy(self, weight):
+  def updateEntropy(self, weight, furthest_policy = False):
       for i in range(0,self._num_blocks):
           for j in range(0,i):
               p = self.L[i][j]
@@ -493,11 +520,12 @@ class Scene():
       # update it considering distance of each part to to center 
       # pre-multiplying Entropy matrix by weight vector
       # weight = self.distWeight()
-      for i in range(0,len(self.E)):
-          for j in range(0,len(self.E[0])):
-              self.E[i][j] = self.E[i][j]*weight[i]
-      print('Entropy updated with weighted distance')
-      print(self.E)
+      if furthest_policy:
+        for i in range(0,len(self.E)):
+            for j in range(0,len(self.E[0])):
+                self.E[i][j] = self.E[i][j]*weight[i]
+        print('Entropy updated with weighted distance')
+        print(self.E)
 
   def is_converged(self):
     return np.all(np.bitwise_or(self.L<THRESHOLD_LOWER_BOUND, self.L>THRESHOLD_UPPER_BOUND))
@@ -529,7 +557,12 @@ def run(policy):
   master_orientation = perc.get_base_orientation()
   ready_for_next_action = True
 
-  im_pub = rospy.Publisher("/tag_detections_single", Image)
+  im_pub = rospy.Publisher("/tag_detections_single", Image)  
+
+  # while im_pub.get_num_connections() == 0:
+  #   rospy.loginfo("Waiting for subscriber to connect")
+  #   rospy.sleep(0.1)
+  # im_pub.publish(bridge.cv2_to_imgmsg(perc.get_current_image(), "bgr8"))
 
   scene.genLink()
   perc.capture_centroid()
@@ -541,12 +574,18 @@ def run(policy):
     while not scene.is_converged():
       if ready_for_next_action:
         # target_tag, dist, angle = scene.get_next_action() # used for demo
+        # im_pub.publish(bridge.cv2_to_imgmsg(perc.get_current_image(), "bgr8"))
+        # rospy.sleep(0.5)
         if policy == 'max_entropy':
           target_tag, dist, angle = scene.bestAction()
         elif policy == 'radial':
           target_tag, _, _ = scene.bestAction()
           quadrant = perc.get_quadrant(target_tag)
           _, dist, angle = scene.bestActionRadial(quadrant)
+        elif policy == 'random':
+          target_tag, dist, angle = scene.randomAction()
+        elif policy == 'furthest':
+          target_tag, dist, angle = scene.bestAction()
         actionSequence.append([target_tag, dist, angle])
         control.send_action(target_tag, dist, angle)
         ready_for_next_action = False
@@ -554,12 +593,15 @@ def run(policy):
       if sequence_initiated:
         print "Capturing start scene..."
         perc.save_current_scene("start")
-        im_pub.publish(bridge.cv2_to_imgmsg(perc.get_current_image(), "bgr8"))
 
         rospy.loginfo("Captured start scene")
         sequence_initiated = False
 
       if sequence_complete:
+        # while im_pub.get_num_connections() == 0:
+        #   rospy.loginfo("Waiting for subscriber to connect")
+        #   rospy.sleep(0.1)
+        # im_pub.publish(bridge.cv2_to_imgmsg(perc.get_current_image(), "bgr8"))
         sequence_complete = False
         ready_for_next_action = True
         print "Capturing end scene..."
@@ -568,8 +610,16 @@ def run(policy):
         delta = perc.calculate_displacement()
         scene.update_moved(delta)
         scene.updateBelief()
-        scene.updateEntropy(perc.distWeight())
+        scene.updateEntropy(perc.distWeight(), policy=='furthest')
         # raw_input()
+      # im_pub.publish(bridge.cv2_to_imgmsg(perc.get_current_image(), "bgr8"))
+        rospy.sleep(0.5)
+        im_pub.publish(perc.get_current_image())
+    
+    # while im_pub.get_num_connections() == 0:
+    #   rospy.loginfo("Waiting for subscriber to connect")
+    #   rospy.sleep(0.1)
+    # im_pub.publish(bridge.cv2_to_imgmsg(perc.get_current_image(), "bgr8"))
     
     print "Completed in ", scene.action_count, " iterations"
     quit()
@@ -582,7 +632,7 @@ if __name__ == '__main__':
     # parser.add_argument('--scene', default = 'scene')
 
     args = parser.parse_args()
-    rate = rospy.Rate(10)
+    rate = rospy.Rate(25)
     try:
         run(args.policy)
     except rospy.ROSInterruptException:
