@@ -286,6 +286,8 @@ class Scene():
     self.sureLink = []
     self.moved=[]
     self.move_distance = 10.0 # mm
+    # self.policy = policy
+    # self.trial_no = trial_no
 
   def populate_action_sequence(self):
     max_dist = 40 # mm
@@ -455,7 +457,7 @@ class Scene():
       dist = self.move_distance
       angle = self.direction_map[quadrant] # pick a random direction
       
-      self.action_count = self.action_count + 1
+      # self.action_count = self.action_count + 1
       print "Target tag: ", target_tag
       print "Distance: ", dist, " mm"
       print "Angle: ", angle, "deg"
@@ -472,12 +474,12 @@ class Scene():
 
                   pIsJsL1 = 0.5
                   pIsJsL0 = 0.5
-                  pImJsL1 = 0.4
-                  pIsJmL1 = 0.4
-                  pImJsL0 = 0.6
-                  pIsJmL0 = 0.6
-                  pImJmL1 = 0.6
-                  pImJmL0 = 0.4
+                  pImJsL1 = 0.25#0.4 #0.25
+                  pIsJmL1 = 0.25#0.4 
+                  pImJsL0 = 0.75#0.6
+                  pIsJmL0 = 0.75#0.6
+                  pImJmL1 = 0.75#0.6
+                  pImJmL0 = 0.25#0.4
 
                   if (self.moved[i] == True and self.moved[j] == True):
                       # probPos = 3 * probPrior / (2 + probPrior)
@@ -505,6 +507,7 @@ class Scene():
   def write_to_file(self, input, filename):
     with open(filename, "ab") as myfile:
     #   # myfile.write(self.L)
+      # myfile.write("\ntrial_{0}_{1}\n".format(self.trial_no, self.policy))
       np.savetxt(myfile, input, delimiter=",", fmt="%.3e")   
 
   # update entropy matrix    
@@ -521,6 +524,7 @@ class Scene():
       # pre-multiplying Entropy matrix by weight vector
       # weight = self.distWeight()
       if furthest_policy:
+        print ("Furthest policy!")
         for i in range(0,len(self.E)):
             for j in range(0,len(self.E[0])):
                 self.E[i][j] = self.E[i][j]*weight[i]
@@ -538,7 +542,7 @@ def seqInitiatedClbk(msg):
   global sequence_initiated
   sequence_initiated = True
 
-def run(policy):
+def run(policy, trial_no):
   actionSequence = []
   averageEntropy = []
   count_iter = 0
@@ -563,9 +567,15 @@ def run(policy):
   #   rospy.loginfo("Waiting for subscriber to connect")
   #   rospy.sleep(0.1)
   # im_pub.publish(bridge.cv2_to_imgmsg(perc.get_current_image(), "bgr8"))
+  im_pub.publish(perc.get_current_image())
 
   scene.genLink()
   perc.capture_centroid()
+
+  with open("prob.csv", "ab") as myfile:
+    myfile.write("\ntrial_{0}_{1}\n".format(trial_no, policy))
+  with open("entropy.csv", "ab") as myfile:
+    myfile.write("\ntrial_{0}_{1}\n".format(trial_no, policy))
 
   while not rospy.is_shutdown():
     # pass
@@ -578,14 +588,12 @@ def run(policy):
         # rospy.sleep(0.5)
         if policy == 'max_entropy':
           target_tag, dist, angle = scene.bestAction()
-        elif policy == 'radial':
+        elif policy == 'radial' or policy == 'furthest':
           target_tag, _, _ = scene.bestAction()
           quadrant = perc.get_quadrant(target_tag)
           _, dist, angle = scene.bestActionRadial(quadrant)
         elif policy == 'random':
           target_tag, dist, angle = scene.randomAction()
-        elif policy == 'furthest':
-          target_tag, dist, angle = scene.bestAction()
         actionSequence.append([target_tag, dist, angle])
         control.send_action(target_tag, dist, angle)
         ready_for_next_action = False
@@ -615,6 +623,7 @@ def run(policy):
       # im_pub.publish(bridge.cv2_to_imgmsg(perc.get_current_image(), "bgr8"))
         rospy.sleep(0.5)
         im_pub.publish(perc.get_current_image())
+    im_pub.publish(perc.get_current_image())
     
     # while im_pub.get_num_connections() == 0:
     #   rospy.loginfo("Waiting for subscriber to connect")
@@ -629,12 +638,14 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--policy', default = 'max_entropy')
+    parser.add_argument('--trial_no', default = '00')
+    
     # parser.add_argument('--scene', default = 'scene')
 
     args = parser.parse_args()
     rate = rospy.Rate(25)
     try:
-        run(args.policy)
+        run(args.policy, args.trial_no)
     except rospy.ROSInterruptException:
         pass
 
