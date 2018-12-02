@@ -359,6 +359,11 @@ class Scene():
       L = np.full((self._num_blocks, self._num_blocks), THRESHOLD_CONNECTION_PROB)
       self.L = np.tril(L,-1)
       print self.L
+      
+  def randomAction(self):
+      target_tag = self.block_index_map[np.random.choice(self.block_ids)] # pick a random part of the high link
+      dist = self.move_distance
+      angle = np.random.choice(self.direction_map.values()) # pick a random direction
 
   def bestAction(self): # TO DO this is just a baseline: Develop actual action policy
       #publish to robot next part to push
@@ -487,8 +492,12 @@ def run(policy):
     while not scene.is_converged():
       if ready_for_next_action:
         # target_tag, dist, angle = scene.get_next_action() # used for demo
+        if policy == 'random':
+          target_tag, dist, angle = scene.randomAction()
         if policy == 'max_entropy':
           target_tag, dist, angle = scene.bestAction()
+        if policy == 'radial':
+          
         actionSequence.append([target_tag, dist, angle])
         control.send_action(target_tag, dist, angle)
         ready_for_next_action = False
