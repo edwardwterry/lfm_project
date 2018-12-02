@@ -6,7 +6,7 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.optimizers import Adam
 
-EPISODES = 5000
+EPISODES = 15000
 
 import matplotlib.pyplot as plt
 np.random.seed(0)
@@ -20,7 +20,7 @@ class Env():
         self.reward_grid = np.array([[2.0,1.0,1.0,2.0],[1.0,0.0,0.0,1.0],[1.0,0.0,0.0,1.0],[2.0,1.0,1.0,2.0]]) # requires 4x4
         self.reward_noop_sel = 0.0
         self.reward_adjacent = -1.0
-        self.max_num_moves = 4
+        self.max_num_moves = 5
         self.grid_state = np.zeros((self.grid_edges, self.grid_edges))
         self.block_pos_orig = {1: (1, 1), 2: (1, 2)}
         self.block_pos = {1: (1, 1), 2: (1, 2)}
@@ -190,12 +190,12 @@ class DQNAgent:
         self.gamma = 0.95    # discount rate
         self.epsilon = 0.8  # exploration rate
         self.epsilon_min = 0.05
-        self.epsilon_decay = 0.999
+        self.epsilon_decay = 0.9995
         self.learning_rate = 0.001
         self.model = self._build_model()
-        # self.action_map = ((1, 'N'), (1, 'W'), (1, 'S'), (1, 'E'),
-        #                    (2, 'N'), (2, 'W'), (2, 'S'), (2, 'E'), (1, 'NO_SEL'))
-        self.action_map = ((1, 'W'), (1, 'E'), (2, 'W'), (2, 'E'), (1, 'NO_SEL'))
+        self.action_map = ((1, 'N'), (1, 'W'), (1, 'S'), (1, 'E'),
+                           (2, 'N'), (2, 'W'), (2, 'S'), (2, 'E'), (1, 'NO_SEL'))
+        # self.action_map = ((1, 'W'), (1, 'E'), (2, 'W'), (2, 'E'), (1, 'NO_SEL'))
 
     def _build_model(self):
         # Neural Net for Deep-Q learning Model
