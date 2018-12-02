@@ -14,15 +14,16 @@ np.random.seed(0)
 class Env():
     def __init__(self):
         self.grid_edges = 4
-        self.num_blocks = 4
+        self.num_blocks = 2
         self.reward_per_move = -1.0
-        self.reward_sep = 1.0
-        self.reward_end = 10.0
+        # self.reward_sep = 1.0
+        self.reward_grid = np.array([[2.0,1.0,1.0,2.0],[1.0,0.0,0.0,1.0],[1.0,0.0,0.0,1.0],[2.0,1.0,1.0,2.0]]) # requires 4x4
         self.reward_noop_sel = 0.0
+        self.reward_adjacent = -1.0
         self.max_num_moves = 7
         self.grid_state = np.zeros((self.grid_edges, self.grid_edges))
-        self.block_pos_orig = {1: (1, 1), 2: (1, 2), 3: (2, 1), 4: (2, 2)}
-        self.block_pos = {1: (1, 1), 2: (1, 2), 3: (2, 1), 4: (2, 2)}
+        self.block_pos_orig = {1: (1, 1), 2: (1, 2)}
+        self.block_pos = {1: (1, 1), 2: (1, 2)}
         self.move_count = 0
         self.action_map = {     'N':  (-1,  0), # (r, c)
                                 # 'NW': (-1, -1),
@@ -34,7 +35,7 @@ class Env():
                                 # 'NE': (-1,  1),
                                 'NO_SEL': ( 0,  0)}
                                 # 'NO_REQ': ( 0,  0)}
-        self.reward_captured = {1: False, 2: False, 3: False, 4: False}
+        # self.reward_captured = {1: False, 2: False, 3: False, 4: False}
         self.done = False
 
     def reset(self):
@@ -42,7 +43,7 @@ class Env():
         for block, pos in self.block_pos_orig.items():
             self.block_pos[block] = (pos[0], pos[1])
             self.grid_state[pos[0]][pos[1]] = block
-            self.reward_captured[block] = False
+            # self.reward_captured[block] = False
 
         self.move_count = 0
         self.done = False
@@ -51,30 +52,51 @@ class Env():
 
     def calc_reward(self, action):
         _reward = 0
+        # rewards for action taken
         if action == 'NO_SEL':
             _reward = _reward + self.reward_noop_sel
         else:
             _reward = _reward + self.reward_per_move
-        if action == 'I_TERM' or self.done == True:
-            for block in self.block_pos:
-                free = []
-                for dir in self.action_map.keys():
-                    action = self.action_map[dir]
-                    if not dir == 'NO_SEL':# and not dir == 'NO_REQ':
-                        _next = (self.block_pos[block][0] + action[0], self.block_pos[block][1] + action[1])
-                        if self.on_grid(_next) and self.grid_state[_next[0]][_next[1]] == 0:
-                            free.append(True)
-                        elif not self.on_grid(_next):
-                            free.append(True)
-                        else: # there's another neighboring block
-                            free.append(False)
-                if all(v == True for v in free):
-                    self.reward_captured[block] = True
-                    _reward = _reward + self.reward_sep
 
-            if all(v == True for v in self.reward_captured.values()):
-                self.done = True
-                _reward = _reward + self.reward_end
+        # rewards for location 
+        for block in self.block_pos:
+            _reward = _reward + self.reward_grid[self.block_pos[block][0]][self.block_pos[block][1]]
+
+        # rewards for adjacency
+        for block in self.block_pos:
+            neigh = []
+            for dir in self.action_map.keys():
+                action = self.action_map[dir]            
+                if not dir == 'NO_SEL':
+                    _next = (self.block_pos[block][0] + action[0], self.block_pos[block][1] + action[1])
+                    if self.on_grid(_next) and self.grid_state[_next[0]][_next[1]] == 0:
+                        neigh.append(False)
+                    elif not self.on_grid(_next):
+                        neigh.append(False)
+                    else: # there's another neighboring block
+                        neigh.append(True)
+            if any(v == True for v in neigh):
+                _reward = _reward + self.reward_adjacent
+        # if action == 'I_TERM' or self.done == True:
+        #     for block in self.block_pos:
+        #         free = []
+        #         for dir in self.action_map.keys():
+        #             action = self.action_map[dir]
+        #             if not dir == 'NO_SEL':# and not dir == 'NO_REQ':
+        #                 _next = (self.block_pos[block][0] + action[0], self.block_pos[block][1] + action[1])
+        #                 if self.on_grid(_next) and self.grid_state[_next[0]][_next[1]] == 0:
+        #                     free.append(True)
+        #                 elif not self.on_grid(_next):
+        #                     free.append(True)
+        #                 else: # there's another neighboring block
+        #                     free.append(False)
+        #         if all(v == True for v in free):
+        #             self.reward_captured[block] = True
+        #             _reward = _reward + self.reward_sep
+
+        #     if all(v == True for v in self.reward_captured.values()):
+        #         self.done = True
+        #         _reward = _reward + self.reward_end
 
         return _reward
 
@@ -125,10 +147,10 @@ class Env():
         print (self.grid_state)
 
     def step(self, block, action):
-        if ((self.move_count + 1) <= self.max_num_moves) and (not action == 'I_TERM'):
-            self.move_count = self.move_count + 1
-            self.move(block, action)
-        else:
+        self.move_count = self.move_count + 1
+        # print ("Move #", self.move_count)
+        self.move(block, action)
+        if self.move_count == self.max_num_moves:
             self.done = True
         # print "Action: ", action, " on block ", block
         # self.print_grid()
@@ -172,9 +194,7 @@ class DQNAgent:
         self.learning_rate = 0.001
         self.model = self._build_model()
         self.action_map = ((1, 'N'), (1, 'W'), (1, 'S'), (1, 'E'),
-                           (2, 'N'), (2, 'W'), (2, 'S'), (2, 'E'),
-                           (3, 'N'), (3, 'W'), (3, 'S'), (3, 'E'),
-                           (4, 'N'), (4, 'W'), (4, 'S'), (4, 'E'), (1, 'NO_SEL'))
+                           (2, 'N'), (2, 'W'), (2, 'S'), (2, 'E'), (1, 'NO_SEL'))
 
     def _build_model(self):
         # Neural Net for Deep-Q learning Model
@@ -207,11 +227,11 @@ class DQNAgent:
             target_f = self.model.predict(state)
             target_f[0][action] = target
             # print (target_f)
-            mask = np.zeros((1, self.action_size))
-            mask[0][action] = 1
+            # mask = np.zeros((1, self.action_size))
+            # mask[0][action] = 1
             # print (mask*target_f)
-            # self.model.fit(state, target_f, epochs=1, verbose=0)
-            self.model.fit(state, mask*target_f, epochs=1, verbose=0)
+            self.model.fit(state, target_f, epochs=1, verbose=0)
+            # self.model.fit(state, mask*target_f, epochs=1, verbose=0)
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
 
@@ -225,7 +245,7 @@ class DQNAgent:
 if __name__ == "__main__":
     env = Env()
     state_size = len(env.grid_state.ravel())
-    action_size = 17# env.num_blocks * len(env.action_map) + 1 # adds I_TERM
+    action_size = len(env.action_map)
     agent = DQNAgent(state_size, action_size)
     # agent.load("./save/cartpole-dqn.h5")
     # done = False
@@ -242,7 +262,10 @@ if __name__ == "__main__":
             action = agent.act(state)
             # print (agent.action_map[action][0], agent.action_map[action][1])
             # input()
-            next_state, _, reward, done, = env.step(agent.action_map[action][0], agent.action_map[action][1])
+            next_state, _, reward, done = env.step(agent.action_map[action][0], agent.action_map[action][1])
+            # print ("\n", agent.action_map[action])
+            # print (next_state.reshape((4,4)))
+            # print (reward)
             reward_total = reward_total + reward
             next_state = np.reshape(next_state, [1, state_size]) # turns into a row vector
             agent.remember(state, action, reward, next_state, done)
