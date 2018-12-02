@@ -5,11 +5,15 @@ import time
 import copy
 
 import argparse
+import cv2
 import numpy as np
+import pandas
 import matplotlib.pyplot as plt
 import math
 import random as rand
 import rospy
+from cv_bridge import CvBridge, CvBridgeError
+from sensor_msgs.msg import Image
 from lfm.msg import Action, AprilTagDetectionArray, AprilTagDetection
 from std_msgs.msg import Bool, String
 from tf.transformations import euler_from_quaternion, quaternion_inverse, quaternion_multiply
@@ -27,6 +31,8 @@ os.system('cls' if os.name == 'nt' else 'clear')
 
 sequence_complete = False
 sequence_initiated = False
+
+bridge = CvBridge()
 
 np.random.seed(0)
 
@@ -83,6 +89,8 @@ class Perception():
     self.end_scene = {}
     self.cx = 0.0
     self.cy = 0.0
+    self.im_sub = rospy.Subscriber("/tag_detections_image", Image, self.detectionsImgClbk, queue_size = 1)
+    self.cv_image = []
 
   def detectionsClbk(self, msg):
     detections_raw = msg.detections
@@ -93,6 +101,12 @@ class Perception():
         _pos_vector = np.array([_pos.x, _pos.y, _pos.z])
         self.pos[indices_raw[i]] = self.transform_cam_to_arm(_pos_vector) # assumes that R and t are populated, converts m to mm (?)
         self.rot[indices_raw[i]] = detections_raw[i].pose.pose.pose.orientation
+  
+  def detectionsImgClbk(self, msg):
+      while self.im_sub.get_num_connections() == 0:
+        rospy.loginfo("Waiting for subscriber to connect")
+        rospy.sleep(0.25)
+      self.cv_image = bridge.imgmsg_to_cv2(msg, desired_encoding="passthrough")
 
   def capture_centroid(self):
     while self.detections_sub.get_num_connections() == 0:
@@ -111,7 +125,7 @@ class Perception():
       weightDist = [math.sqrt((self.cx-pos[_][0])**2 + (self.cy-pos[_][1])**2) for _ in self.pos]
       # normalize it
       normWeight = [_/sum(weightDist) for _ in weightDist]
-      print('WEIGHT:',weightDist)
+      # print('WEIGHT:',weightDist)
       print('Normalized Weight:', normWeight)
       return normWeight
 
@@ -169,6 +183,8 @@ class Perception():
         pass
     # print "Tag displacement:\n", delta
     return delta # this is in meters
+  def get_current_image(self):
+    return self.cv_image
 
   def save_current_scene(self, scene_type):
     if scene_type == "start":
@@ -364,7 +380,7 @@ class Scene():
     print self.block_index_map
     # print self.block_index_map[0]
     # print delta[0]
-    print delta[self.block_index_map.values()[2]]
+    # print delta[self.block_index_map.values()[2]]
     self.moved = [1 if delta[index] > THRESHOLD_MOVED else 0 for index in self.block_index_map.values()]
     print self.moved
 
@@ -383,6 +399,8 @@ class Scene():
       L = np.full((self._num_blocks, self._num_blocks), THRESHOLD_CONNECTION_PROB)
       self.L = np.tril(L,-1)
       print self.L
+      self.write_to_file(self.L, "prob.csv")
+      self.write_to_file(self.E, "entropy.csv")
 
   def bestAction(self): # TO DO this is just a baseline: Develop actual action policy
       #publish to robot next part to push
@@ -454,7 +472,14 @@ class Scene():
                         print '\n **** PARTS ARE SEPARATE: ', self.block_index_map[i], ' and ', self.block_index_map[j], '\n'                      
       print('Updated Link Probabilities:')
       print(self.L)
+      self.write_to_file(self.L, "prob.csv")
+      self.write_to_file(self.E, "entropy.csv")
       
+  def write_to_file(self, input, filename):
+    with open(filename, "ab") as myfile:
+    #   # myfile.write(self.L)
+      np.savetxt(myfile, input, delimiter=",", fmt="%.3e")   
+
   # update entropy matrix    
   def updateEntropy(self, weight):
       for i in range(0,self._num_blocks):
@@ -465,14 +490,14 @@ class Scene():
               self.E = np.tril(self.E,-1) # extracts lower triangular
       print('Entropy Matrix (lower triangular part # vs part #)')
       print self.E
-      # # update it considering distance of each part to to center 
-      # # pre-multiplying Entropy matrix by weight vector
-      # # weight = self.distWeight()
-      # for i in range(0,len(self.E)):
-      #     for j in range(0,len(self.E[0])):
-      #         self.E[i][j] = self.E[i][j]*weight[i]
-      # print('Entropy updated with weighted distance')
-      # print(self.E)
+      # update it considering distance of each part to to center 
+      # pre-multiplying Entropy matrix by weight vector
+      # weight = self.distWeight()
+      for i in range(0,len(self.E)):
+          for j in range(0,len(self.E[0])):
+              self.E[i][j] = self.E[i][j]*weight[i]
+      print('Entropy updated with weighted distance')
+      print(self.E)
 
   def is_converged(self):
     return np.all(np.bitwise_or(self.L<THRESHOLD_LOWER_BOUND, self.L>THRESHOLD_UPPER_BOUND))
@@ -503,7 +528,9 @@ def run(policy):
   seq_initiated_sub = rospy.Subscriber('/sequence_initiated', Bool, seqInitiatedClbk)
   master_orientation = perc.get_base_orientation()
   ready_for_next_action = True
-  
+
+  im_pub = rospy.Publisher("/tag_detections_single", Image)
+
   scene.genLink()
   perc.capture_centroid()
 
@@ -527,6 +554,8 @@ def run(policy):
       if sequence_initiated:
         print "Capturing start scene..."
         perc.save_current_scene("start")
+        im_pub.publish(bridge.cv2_to_imgmsg(perc.get_current_image(), "bgr8"))
+
         rospy.loginfo("Captured start scene")
         sequence_initiated = False
 
@@ -550,6 +579,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--policy', default = 'max_entropy')
+    # parser.add_argument('--scene', default = 'scene')
 
     args = parser.parse_args()
     rate = rospy.Rate(10)
