@@ -6,7 +6,7 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.optimizers import Adam
 
-EPISODES = 10000
+EPISODES = 5000
 
 import matplotlib.pyplot as plt
 np.random.seed(0)
@@ -190,7 +190,7 @@ class DQNAgent:
         self.gamma = 0.95    # discount rate
         self.epsilon = 0.8  # exploration rate
         self.epsilon_min = 0.05
-        self.epsilon_decay = 0.9999
+        self.epsilon_decay = 0.999
         self.learning_rate = 0.001
         self.model = self._build_model()
         # self.action_map = ((1, 'N'), (1, 'W'), (1, 'S'), (1, 'E'),
@@ -274,6 +274,8 @@ if __name__ == "__main__":
                     print("episode: {}/{}, reward: {:.2}, std: {:.2}, e: {:.2}"
                         .format(e, EPISODES, np.mean(reward_total), np.std(reward_total), agent.epsilon))
                     reward_total = []
+                if e%1000 == 0 and e > 0:
+                    agent.save(str(e))
         if len(agent.memory) > batch_size:
             agent.replay(batch_size)
         # if e % 10 == 0:
