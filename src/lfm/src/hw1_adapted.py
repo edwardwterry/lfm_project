@@ -93,6 +93,16 @@ class Perception():
     self.cv_image = []
     self.ros_image_data = []
     self.complete_ros_image = Image()
+    # self.im_still_sub = rospy.Subscriber('/tag_detections_single', Image, imStillClbk)
+    # self.first_image = []
+    # self.second_image = []
+
+  # def imStillClbk(self, msg):
+  #   self.second_image = msg.data
+  #   self.first_image = self.second_image
+
+  # def updatePos(self):
+
 
   def detectionsClbk(self, msg):
     while self.detections_sub.get_num_connections() == 0:
@@ -204,11 +214,14 @@ class Perception():
     return self.complete_ros_image
 
   def save_current_scene(self, scene_type):
+    rospy.sleep(1.0)
     if scene_type == "start":
       # https://stackoverflow.com/questions/11941817/how-to-avoid-runtimeerror-dictionary-changed-size-during-iteration-error
       self.start_scene = { k : v for k,v in self.pos.iteritems() if v.any()}
+      # print self.start_scene
     elif scene_type == "end":
       self.end_scene = { k : v for k,v in self.pos.iteritems() if v.any()}
+      # print self.end_scene
 
   def get_quadrant(self, block_id):
     while self.detections_sub.get_num_connections() == 0:
@@ -230,6 +243,8 @@ class Perception():
     else:
         _direction = 'W'
     return _direction
+
+
 
 class Control():
   def __init__(self):
@@ -474,12 +489,12 @@ class Scene():
 
                   pIsJsL1 = 0.5
                   pIsJsL0 = 0.5
-                  pImJsL1 = 0.25#0.4 #0.25
-                  pIsJmL1 = 0.25#0.4 
-                  pImJsL0 = 0.75#0.6
-                  pIsJmL0 = 0.75#0.6
-                  pImJmL1 = 0.75#0.6
-                  pImJmL0 = 0.25#0.4
+                  pImJsL1 = 0.245#0.4 #0.25
+                  pIsJmL1 = 0.245#0.4 
+                  pImJsL0 = 0.755#0.6
+                  pIsJmL0 = 0.755#0.6
+                  pImJmL1 = 0.755#0.6
+                  pImJmL0 = 0.245#0.4
 
                   if (self.moved[i] == True and self.moved[j] == True):
                       # probPos = 3 * probPrior / (2 + probPrior)
@@ -495,9 +510,9 @@ class Scene():
                   # to avoid updating it and moving towards convergence
                   if probPos > THRESHOLD_UPPER_BOUND or probPos < THRESHOLD_LOWER_BOUND:
                       self.sureLink.append((i,j))
-                      if probPos > THRESHOLD_UPPER_BOUND:
+                      if probPos >= THRESHOLD_UPPER_BOUND:
                         print '\n !!!! PARTS ARE JOINED: ', self.block_index_map[i], ' and ', self.block_index_map[j], '\n'
-                      if probPos < THRESHOLD_LOWER_BOUND:
+                      if probPos <= THRESHOLD_LOWER_BOUND:
                         print '\n **** PARTS ARE SEPARATE: ', self.block_index_map[i], ' and ', self.block_index_map[j], '\n'                      
       print('Updated Link Probabilities:')
       print(self.L)
@@ -532,7 +547,7 @@ class Scene():
         print(self.E)
 
   def is_converged(self):
-    return np.all(np.bitwise_or(self.L<THRESHOLD_LOWER_BOUND, self.L>THRESHOLD_UPPER_BOUND))
+    return np.all(np.bitwise_or(self.L<=THRESHOLD_LOWER_BOUND, self.L>=THRESHOLD_UPPER_BOUND))
 
 def seqCompleteClbk(msg):
   global sequence_complete
@@ -567,7 +582,7 @@ def run(policy, trial_no):
   #   rospy.loginfo("Waiting for subscriber to connect")
   #   rospy.sleep(0.1)
   # im_pub.publish(bridge.cv2_to_imgmsg(perc.get_current_image(), "bgr8"))
-  im_pub.publish(perc.get_current_image())
+  # im_pub.publish(perc.get_current_image())
 
   scene.genLink()
   perc.capture_centroid()
@@ -621,9 +636,9 @@ def run(policy, trial_no):
         scene.updateEntropy(perc.distWeight(), policy=='furthest')
         # raw_input()
       # im_pub.publish(bridge.cv2_to_imgmsg(perc.get_current_image(), "bgr8"))
-        rospy.sleep(0.5)
+        rospy.sleep(0.5) # comment these two lines back in for great performance!
         im_pub.publish(perc.get_current_image())
-    im_pub.publish(perc.get_current_image())
+    # im_pub.publish(perc.get_current_image())
     
     # while im_pub.get_num_connections() == 0:
     #   rospy.loginfo("Waiting for subscriber to connect")
