@@ -5,6 +5,7 @@ from collections import deque
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.optimizers import Adam
+import argparse
 
 EPISODES = 10000
 
@@ -19,8 +20,10 @@ class Env():
         # self.reward_sep = 1.0
         self.reward_grid = np.array([[2.0,1.0,1.0,2.0],[1.0,0.0,0.0,1.0],[1.0,0.0,0.0,1.0],[2.0,1.0,1.0,2.0]]) # requires 4x4
         self.reward_noop_sel = 0.0
-        self.reward_adjacent = -1.0
+        self.reward_adjacent = -0.5
+        self.reward_offgrid = -2.0
         self.max_num_moves = 4
+        self.overboard = False
         self.grid_state = np.zeros((self.grid_edges, self.grid_edges))
         self.block_pos_orig = {1: (1, 1), 2: (1, 2)}
         self.block_pos = {1: (1, 1), 2: (1, 2)}
@@ -98,6 +101,10 @@ class Env():
         #         self.done = True
         #         _reward = _reward + self.reward_end
 
+        # reward for pushing off the side
+        if self.overboard:
+            _reward = _reward + self.reward_offgrid
+
         return _reward
 
     def on_grid(self, coord):
@@ -112,12 +119,14 @@ class Env():
             return True
 
     def move(self, block, action):
+        self.overboard = False
         if action == 'NO_SEL':
             return
         next_coord = (self.block_pos[block][0] + self.action_map[action][0], self.block_pos[block][1] + self.action_map[action][1])
         if not self.on_grid(next_coord): # move would take you over the edge
             self.block_pos[block] = (self.block_pos[block][0], self.block_pos[block][1])
             self.grid_state[self.block_pos[block][0]][self.block_pos[block][1]] = block   
+            self.overboard = True
         elif (self.on_grid(next_coord) and self.grid_state[next_coord[0]][next_coord[1]] == 0): # move is on board and neighbor is free
             self.grid_state[self.block_pos[block][0]][self.block_pos[block][1]] = 0
             self.block_pos[block] = (self.block_pos[block][0] + self.action_map[action][0], self.block_pos[block][1] + self.action_map[action][1])
@@ -190,7 +199,7 @@ class DQNAgent:
         self.gamma = 0.95    # discount rate
         self.epsilon = 0.8  # exploration rate
         self.epsilon_min = 0.05
-        self.epsilon_decay = 0.9999
+        self.epsilon_decay = 0.9998
         self.learning_rate = 0.001
         self.model = self._build_model()
         # self.action_map = ((1, 'N'), (1, 'W'), (1, 'S'), (1, 'E'),
@@ -237,10 +246,10 @@ class DQNAgent:
             self.epsilon *= self.epsilon_decay
 
     def load(self, name):
-        self.model.load_weights(name)
+        self.model.load_weights(name + '.h5')
 
     def save(self, name):
-        self.model.save_weights(name)
+        self.model.save_weights(name + '.h5')
 
 
 if __name__ == "__main__":
@@ -253,28 +262,64 @@ if __name__ == "__main__":
     batch_size = 32
     reward_total = []
 
-    for e in range(EPISODES):
-        state = env.reset()
-        state = np.reshape(state, [1, state_size])
-        done = False
-        episode_reward = 0
-        while not done:
-            action = agent.act(state)
-            next_state, _, reward, done = env.step(agent.action_map[action][0], agent.action_map[action][1])
-            episode_reward = episode_reward + reward
-            next_state = np.reshape(next_state, [1, state_size]) # turns into a row vector
-            agent.remember(state, action, reward, next_state, done)
-            state = next_state
-            if done:
-                reward_total.append(episode_reward)
-                # print("\n", episode_reward)
-                # print(next_state.reshape((4,4)))
-                episode_reward = 0
-                if e%50 == 0:
-                    print("episode: {}/{}, reward: {:.2}, std: {:.2}, e: {:.2}"
-                        .format(e, EPISODES, np.mean(reward_total), np.std(reward_total), agent.epsilon))
-                    reward_total = []
-        if len(agent.memory) > batch_size:
-            agent.replay(batch_size)
-        # if e % 10 == 0:
-        #     agent.save("./save/cartpole-dqn.h5")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--num_blocks', default = '2')
+    parser.add_argument('--num_dirs', default = '2')
+    parser.add_argument('--mode', default = 'train')
+    parser.add_argument('--in_file')
+    args = parser.parse_args()
+    assert(int(args.num_blocks) == int(env.num_blocks))
+    assert(int(args.num_dirs) == int(((len(agent.action_map)-1)/2)))
+
+    filename = str(args.num_blocks) + "bl_" + str(args.num_dirs) + "dir_"
+
+    if args.mode=='train':
+        for e in range(EPISODES):
+            state = env.reset()
+            state = np.reshape(state, [1, state_size])
+            done = False
+            episode_reward = 0
+            while not done:
+                action = agent.act(state)
+                next_state, _, reward, done = env.step(agent.action_map[action][0], agent.action_map[action][1])
+                episode_reward = episode_reward + reward
+                next_state = np.reshape(next_state, [1, state_size]) # turns into a row vector
+                agent.remember(state, action, reward, next_state, done)
+                state = next_state
+                if done:
+                    reward_total.append(episode_reward)
+                    # print("\n", episode_reward)
+                    # print(next_state.reshape((4,4)))
+                    episode_reward = 0
+                    if e%500 == 0 and e>0:
+                        reward_str = "{:.2}".format(np.mean(reward_total))
+                        agent.save(filename + str(e) + "epis_" + reward_str + "rwd")
+                    if e%50 == 0:
+                        print("episode: {}/{}, reward: {:.2}, std: {:.2}, e: {:.2}"
+                            .format(e, EPISODES, np.mean(reward_total), np.std(reward_total), agent.epsilon))
+                        reward_total = []
+            if len(agent.memory) > batch_size:
+                agent.replay(batch_size)
+    elif args.mode=='test':
+        agent.load(args.in_file)
+        agent.epsilon = agent.epsilon_min # set to lowest for test time
+        for e in range(1): 
+            state = env.reset()
+            state = np.reshape(state, [1, state_size])
+            done = False
+            episode_reward = 0
+            # print ("\n\n")
+            while not done:
+                print(state.reshape((4,4)))
+                action = agent.act(state)
+                print (action)
+                next_state, _, reward, done = env.step(agent.action_map[action][0], agent.action_map[action][1])
+                episode_reward = episode_reward + reward
+                next_state = np.reshape(next_state, [1, state_size]) # turns into a row vector
+                state = next_state
+                if done:
+                    print("\n", next_state.reshape((4,4)))
+                    reward_total.append(episode_reward)
+                    episode_reward = 0
+        print("10 test episodes. reward: {:.2}, std: {:.2}, e: {:.2}"
+            .format(np.mean(reward_total), np.std(reward_total), agent.epsilon))
