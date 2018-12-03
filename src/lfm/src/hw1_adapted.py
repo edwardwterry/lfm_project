@@ -93,6 +93,10 @@ class Perception():
     self.cv_image = []
     self.ros_image_data = []
     self.complete_ros_image = Image()
+    self.square_width = 0.025 # m (2.5cm)
+    self.row_limits = {}
+    self.col_limits = {}
+    
     # self.im_still_sub = rospy.Subscriber('/tag_detections_single', Image, imStillClbk)
     # self.first_image = []
     # self.second_image = []
@@ -244,7 +248,35 @@ class Perception():
         _direction = 'W'
     return _direction
 
+  def set_grid_limits(self):
+    w = self.square_width
+    half_width = w / 2.0
+    master_pos = self.pos[self.master_tag_id]
 
+    self.row_limits[0] = (1 * half_width + 1 * w + master_pos[0], 1 * half_width + 0 * w + master_pos[0])
+    self.row_limits[1] = (1 * half_width + 0 * w + master_pos[0], -1 * half_width + 0 * w + master_pos[0])
+    self.row_limits[2] = (-1 * half_width + 0 * w + master_pos[0], -1 * half_width + -1 * w + master_pos[0])
+    self.row_limits[3] = (-1 * half_width + -1 * w + master_pos[0], -1 * half_width + -2 * w + master_pos[0])
+
+    self.col_limits[0] = (1 * half_width + 1 * w + master_pos[1], 1 * half_width + 0 * w + master_pos[1])
+    self.col_limits[1] = (1 * half_width + 0 * w + master_pos[1], -1 * half_width + 0 * w + master_pos[1])
+    self.col_limits[2] = (-1 * half_width + 0 * w + master_pos[1], -1 * half_width + -1 * w + master_pos[1])
+    self.col_limits[3] = (-1 * half_width + -1 * w + master_pos[1], -1 * half_width + -2 * w + master_pos[1])
+
+  def fill_occupancy_grid(self):
+    # get coords of each block
+    block_row = -1
+    block_col = -1
+    occ_grid = np.zeros((4,4))
+    for block in self.pos.keys():
+      for row in range(4):
+        for col in range(4):
+        if self.row_limits[row][0] >= self.pos[block][0] > self.row_limits[row][1] and 
+           self.col_limits[col][0] >= self.pos[block][1] > self.col_limits[col][1]:
+          occ_grid[row][col] = block
+        else 
+          occ_grid[row][col] = 0
+    return occ_grid
 
 class Control():
   def __init__(self):
@@ -548,6 +580,7 @@ class Scene():
 
   def is_converged(self):
     return np.all(np.bitwise_or(self.L<=THRESHOLD_LOWER_BOUND, self.L>=THRESHOLD_UPPER_BOUND))
+
 
 def seqCompleteClbk(msg):
   global sequence_complete
