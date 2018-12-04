@@ -5,18 +5,20 @@ import time
 import copy
 
 import argparse
-import cv2
 import numpy as np
-import pandas
-import matplotlib.pyplot as plt
+# import pandas
+# import matplotlib.pyplot as plt
 import math
 import random as rand
 import rospy
-from cv_bridge import CvBridge, CvBridgeError
 from sensor_msgs.msg import Image
 from lfm.msg import Action, AprilTagDetectionArray, AprilTagDetection
 from std_msgs.msg import Bool, String
 from tf.transformations import euler_from_quaternion, quaternion_inverse, quaternion_multiply
+# import rl
+# from subprocess import call
+# exit_code = call("python3 rl.py", shell=True)
+
 np.set_printoptions(precision=3)
 # Hyperparameters and utility functions
 THRESHOLD_MOVED = 0.005
@@ -31,8 +33,6 @@ os.system('cls' if os.name == 'nt' else 'clear')
 
 sequence_complete = False
 sequence_initiated = False
-
-bridge = CvBridge()
 
 np.random.seed(0)
 
@@ -188,7 +188,7 @@ class Perception():
       H = np.array([[math.cos(th), -math.sin(th), 0, _pos[0]], [math.sin(th), math.cos(th), 0, _pos[1]], [0, 0, 1, _pos[2]], [0,0,0,1]])
       # H = np.array([[1, 0, 0, _pos[0]],[0, math.cos(th), -math.sin(th), _pos[1]],[0, math.sin(th), math.cos(th), 0.0*_pos[2]],[0,0,0,1]])
       # print _arm
-      print np.matmul(H, _arm) 
+      # print np.matmul(H, _arm) 
       # return np.matmul(H, arm) # TBA dimensions
     except:
       pass
@@ -236,8 +236,8 @@ class Perception():
     # print self.pos[3][0]
     _x = self.pos[block_id][0]
     _y = self.pos[block_id][1]
-    print "x: ", _x, " y: ", _y
-    print "self.cx: ", self.cx, " self.cy: ", self.cy
+    print ("x: ", _x, " y: ", _y)
+    print ("self.cx: ", self.cx, " self.cy: ", self.cy)
     if  _x >= self.cx and _y <= self.cy:
         _direction = 'N'
     elif _x < self.cx and _y <= self.cy:
@@ -265,8 +265,8 @@ class Perception():
     self.col_limits[1] = (1 * half_width + 0 * w + master_pos[1], -1 * half_width + 0 * w + master_pos[1])
     self.col_limits[2] = (-1 * half_width + 0 * w + master_pos[1], -1 * half_width + -1 * w + master_pos[1])
     self.col_limits[3] = (-1 * half_width + -1 * w + master_pos[1], -1 * half_width + -2 * w + master_pos[1])
-    print "row lims: ", self.row_limits
-    print "col lims: ", self.col_limits
+    # print ("row lims: ", self.row_limits)
+    # print ("col lims: ", self.col_limits)
 
   def fill_occupancy_grid(self):
     self.set_grid_limits()
@@ -284,7 +284,7 @@ class Perception():
             pass
           else:
             occ_grid[row][col] = 0
-    print occ_grid
+    print (occ_grid)
     return occ_grid
 
 class Control():
@@ -302,7 +302,7 @@ class Control():
       rospy.loginfo("Waiting for subscriber to connect")
       rospy.sleep(0.25)
     self.action_pub.publish(action_msg)
-    print "Published action!"
+    print ("Published action!")
 
 # class Reps():
 #   def __init__(self):
@@ -330,7 +330,7 @@ class Scene():
     self.block_index_map = {}
     for i in range(self._num_blocks):
       self.block_index_map[i] = self.block_ids[i]    
-    print "block ID map: ", self.block_index_map
+    print ("block ID map: ", self.block_index_map)
     self.direction_map = {'N': 0.0, 'W': 90.0, 'S': 180.0, 'E': 270.0}
     self.num_actions = 6
     self.action_count = 0
@@ -449,15 +449,15 @@ class Scene():
   #   return observation
 
   def update_moved(self, delta):
-    print delta
+    print (delta)
     # print np.array([delta])
     # self.moved = [1 if delta[self.block_index_map[index]] > THRESHOLD_MOVED else 0 for index in range(len(self.block_index_map))]
-    print self.block_index_map
+    print (self.block_index_map)
     # print self.block_index_map[0]
     # print delta[0]
     # print delta[self.block_index_map.values()[2]]
     self.moved = [1 if delta[index] > THRESHOLD_MOVED else 0 for index in self.block_index_map.values()]
-    print self.moved
+    print (self.moved)
 
   # def is_converged(self):
   #   """
@@ -473,7 +473,7 @@ class Scene():
   def genLink(self): # generates ma
       L = np.full((self._num_blocks, self._num_blocks), THRESHOLD_CONNECTION_PROB)
       self.L = np.tril(L,-1)
-      print self.L
+      print (self.L)
       self.write_to_file(self.L, "prob.csv")
       self.write_to_file(self.E, "entropy.csv")
 
@@ -482,9 +482,9 @@ class Scene():
       dist = self.move_distance
       angle = np.random.choice(self.direction_map.values()) # pick a random direction 
       self.action_count = self.action_count + 1
-      print "Target tag: ", target_tag
-      print "Distance: ", dist, " mm"
-      print "Angle: ", angle, "deg"
+      print ("Target tag: ", target_tag)
+      print ("Distance: ", dist, " mm")
+      print ("Angle: ", angle, "deg")
       return target_tag, dist, angle
      
   def bestAction(self): # TO DO this is just a baseline: Develop actual action policy
@@ -498,9 +498,9 @@ class Scene():
       angle = np.random.choice(self.direction_map.values()) # pick a random direction
 
       self.action_count = self.action_count + 1
-      print "Target tag: ", target_tag
-      print "Distance: ", dist, " mm"
-      print "Angle: ", angle, "deg"
+      print ("Target tag: ", target_tag)
+      print ("Distance: ", dist, " mm")
+      print ("Angle: ", angle, "deg")
       return target_tag, dist, angle
 
   def bestActionRadial(self, quadrant): # TO DO this is just a baseline: Develop actual action policy
@@ -514,9 +514,9 @@ class Scene():
       angle = self.direction_map[quadrant] # pick a random direction
       
       # self.action_count = self.action_count + 1
-      print "Target tag: ", target_tag
-      print "Distance: ", dist, " mm"
-      print "Angle: ", angle, "deg"
+      print ("Target tag: ", target_tag)
+      print ("Distance: ", dist, " mm")
+      print ("Angle: ", angle, "deg")
       return target_tag, dist, angle
 
   def updateBelief(self):
@@ -552,9 +552,9 @@ class Scene():
                   if probPos > THRESHOLD_UPPER_BOUND or probPos < THRESHOLD_LOWER_BOUND:
                       self.sureLink.append((i,j))
                       if probPos >= THRESHOLD_UPPER_BOUND:
-                        print '\n !!!! PARTS ARE JOINED: ', self.block_index_map[i], ' and ', self.block_index_map[j], '\n'
+                        print ('\n !!!! PARTS ARE JOINED: ', self.block_index_map[i], ' and ', self.block_index_map[j], '\n')
                       if probPos <= THRESHOLD_LOWER_BOUND:
-                        print '\n **** PARTS ARE SEPARATE: ', self.block_index_map[i], ' and ', self.block_index_map[j], '\n'                      
+                        print ('\n **** PARTS ARE SEPARATE: ', self.block_index_map[i], ' and ', self.block_index_map[j], '\n')                      
       print('Updated Link Probabilities:')
       print(self.L)
       self.write_to_file(self.L, "prob.csv")
@@ -575,7 +575,7 @@ class Scene():
               self.E[i][j] = entropy
               self.E = np.tril(self.E,-1) # extracts lower triangular
       print('Entropy Matrix (lower triangular part # vs part #)')
-      print self.E
+      print (self.E)
       # update it considering distance of each part to to center 
       # pre-multiplying Entropy matrix by weight vector
       # weight = self.distWeight()
@@ -617,8 +617,8 @@ def run(policy, trial_no):
   seq_initiated_sub = rospy.Subscriber('/sequence_initiated', Bool, seqInitiatedClbk)
   master_orientation = perc.get_base_orientation()
   ready_for_next_action = True
-  state = perc.fill_occupancy_grid()
-  raw_input()
+  # state = perc.fill_occupancy_grid()
+  # raw_input()
   im_pub = rospy.Publisher("/tag_detections_single", Image)  
 
   # while im_pub.get_num_connections() == 0:
@@ -652,12 +652,14 @@ def run(policy, trial_no):
           _, dist, angle = scene.bestActionRadial(quadrant)
         elif policy == 'random':
           target_tag, dist, angle = scene.randomAction()
+        elif policy == 'nn': 
+          target_tag, dist, angle = scene.nnAction()
         actionSequence.append([target_tag, dist, angle])
         control.send_action(target_tag, dist, angle)
         ready_for_next_action = False
 
       if sequence_initiated:
-        print "Capturing start scene..."
+        print ("Capturing start scene...")
         perc.save_current_scene("start")
 
         rospy.loginfo("Captured start scene")
@@ -670,7 +672,7 @@ def run(policy, trial_no):
         # im_pub.publish(bridge.cv2_to_imgmsg(perc.get_current_image(), "bgr8"))
         sequence_complete = False
         ready_for_next_action = True
-        print "Capturing end scene..."
+        print ("Capturing end scene...")
         perc.save_current_scene("end")
         rospy.loginfo("Captured end scene")
         delta = perc.calculate_displacement()
@@ -688,7 +690,7 @@ def run(policy, trial_no):
     #   rospy.sleep(0.1)
     # im_pub.publish(bridge.cv2_to_imgmsg(perc.get_current_image(), "bgr8"))
     
-    print "Completed in ", scene.action_count, " iterations"
+    print ("Completed in ", scene.action_count, " iterations")
     quit()
 
 if __name__ == '__main__':
