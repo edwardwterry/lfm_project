@@ -249,6 +249,9 @@ class Perception():
     return _direction
 
   def set_grid_limits(self):
+    while not self.pos:
+      rospy.sleep(0.25)
+
     w = self.square_width
     half_width = w / 2.0
     master_pos = self.pos[self.master_tag_id]
@@ -262,20 +265,26 @@ class Perception():
     self.col_limits[1] = (1 * half_width + 0 * w + master_pos[1], -1 * half_width + 0 * w + master_pos[1])
     self.col_limits[2] = (-1 * half_width + 0 * w + master_pos[1], -1 * half_width + -1 * w + master_pos[1])
     self.col_limits[3] = (-1 * half_width + -1 * w + master_pos[1], -1 * half_width + -2 * w + master_pos[1])
+    print "row lims: ", self.row_limits
+    print "col lims: ", self.col_limits
 
   def fill_occupancy_grid(self):
+    self.set_grid_limits()
     # get coords of each block
-    block_row = -1
-    block_col = -1
     occ_grid = np.zeros((4,4))
-    for block in self.pos.keys():
-      for row in range(4):
-        for col in range(4):
-        if self.row_limits[row][0] >= self.pos[block][0] > self.row_limits[row][1] and 
-           self.col_limits[col][0] >= self.pos[block][1] > self.col_limits[col][1]:
-          occ_grid[row][col] = block
-        else 
-          occ_grid[row][col] = 0
+    for row in range(4):
+      for col in range(4):
+        for block in self.pos.keys():
+          # print (row, col, block, self.pos[block][0], self.pos[block][1])
+          # print self.row_limits[row][0], self.row_limits[row][1], self.col_limits[col][0], self.col_limits[col][1]
+          if self.row_limits[row][0] >= self.pos[block][0] > self.row_limits[row][1] and \
+            self.col_limits[col][0] >= self.pos[block][1] > self.col_limits[col][1]:
+            occ_grid[row][col] = block
+          elif not occ_grid[row][col] == 0:
+            pass
+          else:
+            occ_grid[row][col] = 0
+    print occ_grid
     return occ_grid
 
 class Control():
@@ -321,7 +330,7 @@ class Scene():
     self.block_index_map = {}
     for i in range(self._num_blocks):
       self.block_index_map[i] = self.block_ids[i]    
-    print self.block_index_map
+    print "block ID map: ", self.block_index_map
     self.direction_map = {'N': 0.0, 'W': 90.0, 'S': 180.0, 'E': 270.0}
     self.num_actions = 6
     self.action_count = 0
@@ -608,7 +617,8 @@ def run(policy, trial_no):
   seq_initiated_sub = rospy.Subscriber('/sequence_initiated', Bool, seqInitiatedClbk)
   master_orientation = perc.get_base_orientation()
   ready_for_next_action = True
-
+  state = perc.fill_occupancy_grid()
+  raw_input()
   im_pub = rospy.Publisher("/tag_detections_single", Image)  
 
   # while im_pub.get_num_connections() == 0:
