@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-#! usr/bin/env python3
-
+# ! usr/bin/env python
+import rospy
 import random
 import numpy as np
 from collections import deque
@@ -8,6 +8,7 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.optimizers import Adam
 import argparse
+from std_msgs import Int32, Int32MultiArray
 
 EPISODES = 15000
 

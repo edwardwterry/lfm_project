@@ -15,7 +15,8 @@ from sensor_msgs.msg import Image
 from lfm.msg import Action, AprilTagDetectionArray, AprilTagDetection
 from std_msgs.msg import Bool, String
 from tf.transformations import euler_from_quaternion, quaternion_inverse, quaternion_multiply
-# import rl
+# import rl_act
+# import tensorflow
 # from subprocess import call
 # exit_code = call("python3 rl.py", shell=True)
 
@@ -342,8 +343,14 @@ class Scene():
     self.sureLink = []
     self.moved=[]
     self.move_distance = 10.0 # mm
+    self.state_pub = rospy.Publisher("/grid_state", Int32MultiArray)
+    self.nnaction_sub = rospy.Subscriber("/nn_action", Int32, self.nnActionSubClbk)
+    self.nn_action = 0
     # self.policy = policy
     # self.trial_no = trial_no
+
+  def nnActionSubClbk(self, msg):
+    self.nn_action = msg.data
 
   def populate_action_sequence(self):
     max_dist = 40 # mm
@@ -486,6 +493,13 @@ class Scene():
       print ("Distance: ", dist, " mm")
       print ("Angle: ", angle, "deg")
       return target_tag, dist, angle
+  
+  def nnAction(self):
+
+      action_map = ((1, 'W'), (1, 'E'), (2, 'W'), (2, 'E'), (1, 'NO_SEL'))
+
+      return target_tag, dist, angle
+
      
   def bestAction(self): # TO DO this is just a baseline: Develop actual action policy
       #publish to robot next part to push
@@ -518,6 +532,8 @@ class Scene():
       print ("Distance: ", dist, " mm")
       print ("Angle: ", angle, "deg")
       return target_tag, dist, angle
+
+
 
   def updateBelief(self):
       # iterate through lower triangular portion of matrix L and update probabilitiies links
