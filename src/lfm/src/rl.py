@@ -6,7 +6,7 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.optimizers import Adam
 
-EPISODES = 5000
+EPISODES = 10000
 
 import matplotlib.pyplot as plt
 np.random.seed(0)
@@ -15,12 +15,14 @@ class Env():
     def __init__(self):
         self.grid_edges = 4
         self.num_blocks = 2
-        self.reward_per_move = -0.5
+        self.reward_per_move = -2.0
         # self.reward_sep = 1.0
-        self.reward_grid = np.array([[2.0,1.0,1.0,2.0],[1.0,0.0,0.0,1.0],[1.0,0.0,0.0,1.0],[2.0,1.0,1.0,2.0]]) # requires 4x4
+        self.reward_grid = np.array([[2.0,1.0,1.0,2.0],[3.0,0.0,0.0,3.0],[1.0,0.0,0.0,1.0],[2.0,1.0,1.0,2.0]]) # requires 4x4
         self.reward_noop_sel = 0.0
         self.reward_adjacent = -1.0
+        self.reward_offgrid = -2.0
         self.max_num_moves = 4
+        self.overboard = False 
         self.grid_state = np.zeros((self.grid_edges, self.grid_edges))
         self.block_pos_orig = {1: (1, 1), 2: (1, 2)}
         self.block_pos = {1: (1, 1), 2: (1, 2)}
@@ -97,7 +99,8 @@ class Env():
         #     if all(v == True for v in self.reward_captured.values()):
         #         self.done = True
         #         _reward = _reward + self.reward_end
-
+        if self.overboard:
+            _reward = _reward + self.reward_offgrid
         return _reward
 
     def on_grid(self, coord):
@@ -112,12 +115,14 @@ class Env():
             return True
 
     def move(self, block, action):
+        self.overboard = False
         if action == 'NO_SEL':
             return
         next_coord = (self.block_pos[block][0] + self.action_map[action][0], self.block_pos[block][1] + self.action_map[action][1])
         if not self.on_grid(next_coord): # move would take you over the edge
             self.block_pos[block] = (self.block_pos[block][0], self.block_pos[block][1])
             self.grid_state[self.block_pos[block][0]][self.block_pos[block][1]] = block   
+            self.overboard = True 
         elif (self.on_grid(next_coord) and self.grid_state[next_coord[0]][next_coord[1]] == 0): # move is on board and neighbor is free
             self.grid_state[self.block_pos[block][0]][self.block_pos[block][1]] = 0
             self.block_pos[block] = (self.block_pos[block][0] + self.action_map[action][0], self.block_pos[block][1] + self.action_map[action][1])
@@ -190,7 +195,7 @@ class DQNAgent:
         self.gamma = 0.95    # discount rate
         self.epsilon = 0.8  # exploration rate
         self.epsilon_min = 0.05
-        self.epsilon_decay = 0.999
+        self.epsilon_decay = 0.9998
         self.learning_rate = 0.001
         self.model = self._build_model()
         # self.action_map = ((1, 'N'), (1, 'W'), (1, 'S'), (1, 'E'),
@@ -274,7 +279,7 @@ if __name__ == "__main__":
                     print("episode: {}/{}, reward: {:.2}, std: {:.2}, e: {:.2}"
                         .format(e, EPISODES, np.mean(reward_total), np.std(reward_total), agent.epsilon))
                     reward_total = []
-                if e%1000 == 0 and e > 0:
+                if e%250 == 0 and e > 0:
                     agent.save(str(e))
         if len(agent.memory) > batch_size:
             agent.replay(batch_size)
