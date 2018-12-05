@@ -13,7 +13,7 @@ import random as rand
 import rospy
 from sensor_msgs.msg import Image
 from lfm.msg import Action, AprilTagDetectionArray, AprilTagDetection
-from std_msgs.msg import Bool, String
+from std_msgs.msg import Bool, String, Int32, Int32MultiArray
 from tf.transformations import euler_from_quaternion, quaternion_inverse, quaternion_multiply
 # import rl_act
 # import tensorflow
@@ -97,7 +97,9 @@ class Perception():
     self.square_width = 0.025 # m (2.5cm)
     self.row_limits = {}
     self.col_limits = {}
-    
+    self.nn_state_pub = rospy.Publisher("/nn_grid_state", Int32MultiArray)
+    self.grid_initialized = False
+    self.update_occupancy_grid()
     # self.im_still_sub = rospy.Subscriber('/tag_detections_single', Image, imStillClbk)
     # self.first_image = []
     # self.second_image = []
@@ -268,9 +270,11 @@ class Perception():
     self.col_limits[3] = (-1 * half_width + -1 * w + master_pos[1], -1 * half_width + -2 * w + master_pos[1])
     # print ("row lims: ", self.row_limits)
     # print ("col lims: ", self.col_limits)
+    self.grid_initialized = True
 
-  def fill_occupancy_grid(self):
-    self.set_grid_limits()
+  def update_occupancy_grid(self):
+    if not self.grid_initialized:
+      self.set_grid_limits()
     # get coords of each block
     occ_grid = np.zeros((4,4))
     for row in range(4):
@@ -285,8 +289,22 @@ class Perception():
             pass
           else:
             occ_grid[row][col] = 0
+    self.occ_grid = occ_grid
     print (occ_grid)
-    return occ_grid
+    # return occ_grid
+
+  def send_nn_state(self):
+      self.update_occupancy_grid()
+      _state = self.occ_grid.reshape((16,1))
+      msg = Int32MultiArray()
+      _state_list = _state.tolist()
+      msg.data = [int(elm[0]) for elm in _state_list]
+      # print msg.data
+      # raw_input()
+      while self.nn_state_pub.get_num_connections() == 0:
+        rospy.loginfo("Waiting for subscriber to connect")
+        rospy.sleep(0.25)
+      self.nn_state_pub.publish(msg)
 
 class Control():
   def __init__(self):
@@ -343,14 +361,17 @@ class Scene():
     self.sureLink = []
     self.moved=[]
     self.move_distance = 10.0 # mm
-    self.state_pub = rospy.Publisher("/grid_state", Int32MultiArray)
-    self.nnaction_sub = rospy.Subscriber("/nn_action", Int32, self.nnActionSubClbk)
+    self.nn_action_sub = rospy.Subscriber("/nn_action", Int32, self.nnActionSubClbk)
     self.nn_action = 0
+    self.nn_action_received = False
     # self.policy = policy
     # self.trial_no = trial_no
 
   def nnActionSubClbk(self, msg):
+    self.nn_action_received = True
     self.nn_action = msg.data
+    # print("Received action: ", self.nn_action)
+    # raw_input()
 
   def populate_action_sequence(self):
     max_dist = 40 # mm
@@ -495,9 +516,19 @@ class Scene():
       return target_tag, dist, angle
   
   def nnAction(self):
-
+      while not self.nn_action_received:
+        pass
+      self.nn_action_received = False
       action_map = ((1, 'W'), (1, 'E'), (2, 'W'), (2, 'E'), (1, 'NO_SEL'))
-
+      target_tag = action_map[self.nn_action][0]
+      if self.nn_action == 4: # NO_SEL
+        dist = 0.0
+      else:
+        dist = 25.0
+      angle = self.direction_map[action_map[self.nn_action][1]]
+      print "Target tag: ", target_tag
+      print "Distance: ", dist, " mm"
+      print "Angle: ", angle, "deg"
       return target_tag, dist, angle
 
      
@@ -669,6 +700,7 @@ def run(policy, trial_no):
         elif policy == 'random':
           target_tag, dist, angle = scene.randomAction()
         elif policy == 'nn': 
+          perc.send_nn_state()
           target_tag, dist, angle = scene.nnAction()
         actionSequence.append([target_tag, dist, angle])
         control.send_action(target_tag, dist, angle)
@@ -691,10 +723,11 @@ def run(policy, trial_no):
         print ("Capturing end scene...")
         perc.save_current_scene("end")
         rospy.loginfo("Captured end scene")
-        delta = perc.calculate_displacement()
-        scene.update_moved(delta)
-        scene.updateBelief()
-        scene.updateEntropy(perc.distWeight(), policy=='furthest')
+        if not policy == 'nn':
+          delta = perc.calculate_displacement()
+          scene.update_moved(delta)
+          scene.updateBelief()
+          scene.updateEntropy(perc.distWeight(), policy=='furthest')
         # raw_input()
       # im_pub.publish(bridge.cv2_to_imgmsg(perc.get_current_image(), "bgr8"))
         rospy.sleep(0.5) # comment these two lines back in for great performance!
